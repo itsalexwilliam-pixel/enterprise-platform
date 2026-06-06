@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ============================================================
 # Enterprise Email Validation Platform - Docker Compose
 # Multi-Server Architecture with Load Balancing
