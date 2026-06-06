@@ -341,7 +341,7 @@ services:
     image: redis:7.2-alpine
     container_name: ev_redis
     restart: unless-stopped
-    command: redis-server /etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
       - ./docker/redis/redis.conf:/etc/redis/redis.conf:ro
@@ -351,7 +351,7 @@ services:
       email_validator_net:
         ipv4_address: 172.20.0.60
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
