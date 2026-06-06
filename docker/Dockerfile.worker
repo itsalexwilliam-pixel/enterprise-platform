@@ -21,6 +21,11 @@ RUN apk add --no-cache \
     icu-dev \
     bind-tools \
     supervisor \
+    linux-headers \
+    autoconf \
+    gcc \
+    g++ \
+    make \
     && rm -rf /var/cache/apk/*
 
 # Install PHP extensions
