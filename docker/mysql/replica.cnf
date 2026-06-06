@@ -1,0 +1,38 @@
+[mysqld]
+# ============================================================
+# MySQL Read Replica Configuration
+# Enterprise Email Validation Platform
+# ============================================================
+
+# Replication
+server-id                  = 2
+relay-log                  = relay-bin
+relay-log-index            = relay-bin.index
+read_only                  = 1
+super_read_only            = 1
+log_replica_updates        = 1
+
+# Binary logging (needed for chained replication)
+log_bin                    = mysql-bin
+binlog_format              = ROW
+binlog_row_image           = FULL
+expire_logs_days           = 7
+
+# Performance
+innodb_buffer_pool_size    = 1G
+innodb_log_file_size       = 256M
+innodb_flush_method        = O_DIRECT
+innodb_flush_log_at_trx_commit = 2
+
+# Read optimization
+innodb_read_io_threads     = 8
+innodb_write_io_threads    = 4
+
+# Character set
+character-set-server       = utf8mb4
+collation-server           = utf8mb4_unicode_ci
+
+# Slow query log
+slow_query_log             = 1
+slow_query_log_file        = /var/log/mysql/slow.log
+long_query_time            = 1
