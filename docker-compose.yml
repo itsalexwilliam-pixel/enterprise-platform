@@ -175,6 +175,9 @@ services:
     environment:
       - WORKER_TYPE=smtp
       - WORKER_ID=smtp_3
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
@@ -196,6 +199,9 @@ services:
     environment:
       - WORKER_TYPE=smtp
       - WORKER_ID=smtp_4
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
@@ -220,12 +226,19 @@ services:
     environment:
       - WORKER_TYPE=dns
       - WORKER_ID=dns_1
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
     networks:
       email_validator_net:
         ipv4_address: 172.20.0.30
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
 
   dns_worker_2:
     build:
@@ -237,12 +250,19 @@ services:
     environment:
       - WORKER_TYPE=dns
       - WORKER_ID=dns_2
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
     networks:
       email_validator_net:
         ipv4_address: 172.20.0.31
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
 
   # ============================================================
   # BULK PROCESSING WORKERS (x2)
@@ -257,12 +277,19 @@ services:
     environment:
       - WORKER_TYPE=bulk
       - WORKER_ID=bulk_1
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
     networks:
       email_validator_net:
         ipv4_address: 172.20.0.40
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
 
   bulk_worker_2:
     build:
@@ -274,12 +301,19 @@ services:
     environment:
       - WORKER_TYPE=bulk
       - WORKER_ID=bulk_2
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - storage_data:/var/www/html/storage
       - ./.env:/var/www/html/.env:ro
     networks:
       email_validator_net:
         ipv4_address: 172.20.0.41
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
 
   # ============================================================
   # MYSQL MASTER (Write)
