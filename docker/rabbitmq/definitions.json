@@ -1,0 +1,123 @@
+{
+  "vhosts": [
+    { "name": "email_validator" }
+  ],
+  "exchanges": [
+    {
+      "name": "ev.dead_letter",
+      "vhost": "email_validator",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false
+    },
+    {
+      "name": "ev.main",
+      "vhost": "email_validator",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false
+    }
+  ],
+  "queues": [
+    {
+      "name": "smtp_validation",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 3600000,
+        "x-dead-letter-exchange": "ev.dead_letter",
+        "x-max-length": 1000000,
+        "x-overflow": "reject-publish"
+      }
+    },
+    {
+      "name": "dns_validation",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 1800000,
+        "x-dead-letter-exchange": "ev.dead_letter",
+        "x-max-length": 500000
+      }
+    },
+    {
+      "name": "bulk_processing",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 86400000,
+        "x-dead-letter-exchange": "ev.dead_letter",
+        "x-max-length": 1000
+      }
+    },
+    {
+      "name": "webhooks",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 3600000,
+        "x-dead-letter-exchange": "ev.dead_letter",
+        "x-max-length": 100000
+      }
+    },
+    {
+      "name": "reports",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 7200000,
+        "x-max-length": 5000
+      }
+    },
+    {
+      "name": "ev.dead_letter.queue",
+      "vhost": "email_validator",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 604800000
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "ev.main",
+      "vhost": "email_validator",
+      "destination": "smtp_validation",
+      "destination_type": "queue",
+      "routing_key": "smtp"
+    },
+    {
+      "source": "ev.main",
+      "vhost": "email_validator",
+      "destination": "dns_validation",
+      "destination_type": "queue",
+      "routing_key": "dns"
+    },
+    {
+      "source": "ev.dead_letter",
+      "vhost": "email_validator",
+      "destination": "ev.dead_letter.queue",
+      "destination_type": "queue",
+      "routing_key": ""
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "email_validator",
+      "name": "ha-policy",
+      "pattern": ".*",
+      "apply-to": "queues",
+      "definition": {
+        "ha-mode": "all",
+        "ha-sync-mode": "automatic"
+      },
+      "priority": 0
+    }
+  ]
+}

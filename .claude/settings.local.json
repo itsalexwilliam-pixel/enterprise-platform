@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p docker/nginx docker/mysql docker/redis docker/rabbitmq docker/supervisor)",
+      "Bash(mkdir -p app/Http/Controllers/Api app/Http/Controllers/Admin app/Http/Controllers/Auth app/Http/Controllers/User)",
+      "Bash(mkdir -p app/Http/Middleware app/Http/Requests app/Http/Resources)",
+      "Bash(mkdir -p app/Models app/Services/Validation app/Services/Billing app/Services/Report)",
+      "Bash(mkdir -p app/Jobs app/Events app/Listeners app/Mail)",
+      "Bash(mkdir -p app/Console/Commands)",
+      "Bash(mkdir -p database/migrations database/seeders database/factories)",
+      "Bash(mkdir -p resources/views/admin resources/views/auth resources/views/user resources/views/emails)",
+      "Bash(mkdir -p resources/js/components resources/js/pages resources/css)",
+      "Bash(mkdir -p routes storage/logs)",
+      "Bash(findstr /n \"function\" \"c:\\\\Users\\\\itsal\\\\Desktop\\\\uMaxBooks\\\\Power Email Validation\\\\app\\\\Models\\\\User.php\")",
+      "Bash(docker compose -f docker-compose.local.yml ps)",
+      "Bash(docker compose -f docker-compose.local.yml logs php --tail=60)",
+      "Bash(docker compose -f docker-compose.local.yml logs php --tail=50)",
+      "Bash(gh auth status)"
+    ]
+  }
+}

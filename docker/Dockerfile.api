@@ -1,0 +1,74 @@
+# ============================================================
+# Enterprise Email Validator - API Server Dockerfile
+# PHP 8.3 + Laravel 12 + FPM
+# ============================================================
+
+FROM php:8.3-fpm-alpine
+
+LABEL maintainer="Enterprise Email Validator"
+LABEL version="1.0.0"
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    oniguruma-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
+    icu-dev \
+    linux-headers \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    && rm -rf /var/cache/apk/*
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        opcache \
+        sockets \
+    && pecl install redis swoole \
+    && docker-php-ext-enable redis swoole
+
+# Install Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application code
+COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# PHP-FPM configuration
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+# Opcache configuration
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

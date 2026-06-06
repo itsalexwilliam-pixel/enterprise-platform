@@ -1,0 +1,56 @@
+# ============================================================
+# Enterprise Email Validator - Queue Worker Dockerfile
+# Optimized for SMTP/DNS/Bulk Processing
+# ============================================================
+
+FROM php:8.3-cli-alpine
+
+LABEL maintainer="Enterprise Email Validator"
+LABEL version="1.0.0"
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    oniguruma-dev \
+    libzip-dev \
+    icu-dev \
+    bind-tools \
+    supervisor \
+    && rm -rf /var/cache/apk/*
+
+# Install PHP extensions
+RUN docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        pcntl \
+        bcmath \
+        zip \
+        intl \
+        sockets \
+    && pecl install redis \
+    && docker-php-ext-enable redis
+
+# Install Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY . .
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+RUN chown -R www-data:www-data /var/www/html
+
+# PHP configuration for workers
+COPY docker/php/worker-php.ini /usr/local/etc/php/php.ini
+
+# Supervisor configuration
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["php", "artisan", "queue:work"]

@@ -1,0 +1,421 @@
+version: '3.8'
+
+# ============================================================
+# Enterprise Email Validation Platform - Docker Compose
+# Multi-Server Architecture with Load Balancing
+# ============================================================
+
+networks:
+  email_validator_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  storage_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+services:
+
+  # ============================================================
+  # NGINX LOAD BALANCER
+  # ============================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ev_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/api.conf:/etc/nginx/conf.d/api.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+      - storage_data:/var/www/html/storage
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.2
+    depends_on:
+      - api_server_1
+      - api_server_2
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================
+  # API SERVER 1
+  # ============================================================
+  api_server_1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: ev_api_1
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=mysql_master
+      - DB_READ_HOST=mysql_replica
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - SERVER_ID=api_1
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.10
+    depends_on:
+      mysql_master:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ============================================================
+  # API SERVER 2 (Horizontal Scaling)
+  # ============================================================
+  api_server_2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: ev_api_2
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=mysql_master
+      - DB_READ_HOST=mysql_replica
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+      - SERVER_ID=api_2
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.11
+    depends_on:
+      mysql_master:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ============================================================
+  # SMTP VALIDATION WORKERS (x4 for high throughput)
+  # ============================================================
+  smtp_worker_1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_smtp_worker_1
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=smtp_validation --tries=3 --timeout=60 --sleep=1 --max-jobs=1000
+    environment:
+      - WORKER_TYPE=smtp
+      - WORKER_ID=smtp_1
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.20
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
+
+  smtp_worker_2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_smtp_worker_2
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=smtp_validation --tries=3 --timeout=60 --sleep=1 --max-jobs=1000
+    environment:
+      - WORKER_TYPE=smtp
+      - WORKER_ID=smtp_2
+      - DB_HOST=mysql_master
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.21
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
+
+  smtp_worker_3:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_smtp_worker_3
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=smtp_validation --tries=3 --timeout=60 --sleep=1 --max-jobs=1000
+    environment:
+      - WORKER_TYPE=smtp
+      - WORKER_ID=smtp_3
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.22
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
+
+  smtp_worker_4:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_smtp_worker_4
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=smtp_validation --tries=3 --timeout=60 --sleep=1 --max-jobs=1000
+    environment:
+      - WORKER_TYPE=smtp
+      - WORKER_ID=smtp_4
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.23
+    depends_on:
+      - mysql_master
+      - redis
+      - rabbitmq
+
+  # ============================================================
+  # DNS VALIDATION WORKERS (x2)
+  # ============================================================
+  dns_worker_1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_dns_worker_1
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=dns_validation --tries=3 --timeout=30 --sleep=1 --max-jobs=2000
+    environment:
+      - WORKER_TYPE=dns
+      - WORKER_ID=dns_1
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.30
+
+  dns_worker_2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_dns_worker_2
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=dns_validation --tries=3 --timeout=30 --sleep=1 --max-jobs=2000
+    environment:
+      - WORKER_TYPE=dns
+      - WORKER_ID=dns_2
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.31
+
+  # ============================================================
+  # BULK PROCESSING WORKERS (x2)
+  # ============================================================
+  bulk_worker_1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_bulk_worker_1
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=bulk_processing --tries=1 --timeout=3600 --sleep=2
+    environment:
+      - WORKER_TYPE=bulk
+      - WORKER_ID=bulk_1
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.40
+
+  bulk_worker_2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ev_bulk_worker_2
+    restart: unless-stopped
+    command: php artisan queue:work rabbitmq --queue=bulk_processing --tries=1 --timeout=3600 --sleep=2
+    environment:
+      - WORKER_TYPE=bulk
+      - WORKER_ID=bulk_2
+    volumes:
+      - storage_data:/var/www/html/storage
+      - ./.env:/var/www/html/.env:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.41
+
+  # ============================================================
+  # MYSQL MASTER (Write)
+  # ============================================================
+  mysql_master:
+    image: mysql:8.0
+    container_name: ev_mysql_master
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_REPLICATION_MODE: master
+      MYSQL_REPLICATION_USER: repl_user
+      MYSQL_REPLICATION_PASSWORD: ${REPL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/master.cnf:/etc/mysql/conf.d/master.cnf:ro
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.50
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # ============================================================
+  # MYSQL REPLICA (Read)
+  # ============================================================
+  mysql_replica:
+    image: mysql:8.0
+    container_name: ev_mysql_replica
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_REPLICATION_MODE: slave
+      MYSQL_MASTER_HOST: mysql_master
+      MYSQL_MASTER_USER: repl_user
+      MYSQL_MASTER_PASSWORD: ${REPL_PASSWORD}
+    volumes:
+      - ./docker/mysql/replica.cnf:/etc/mysql/conf.d/replica.cnf:ro
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.51
+    depends_on:
+      mysql_master:
+        condition: service_healthy
+
+  # ============================================================
+  # REDIS (Cache + Sessions + Rate Limiting)
+  # ============================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: ev_redis
+    restart: unless-stopped
+    command: redis-server /etc/redis/redis.conf
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/etc/redis/redis.conf:ro
+    ports:
+      - "6379:6379"
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.60
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # RABBITMQ (Message Queue)
+  # ============================================================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: ev_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: email_validator
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.70
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ============================================================
+  # PROMETHEUS (Metrics)
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: ev_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.80
+
+  # ============================================================
+  # GRAFANA (Monitoring Dashboard)
+  # ============================================================
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: ev_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    volumes:
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    networks:
+      email_validator_net:
+        ipv4_address: 172.20.0.81
+    depends_on:
+      - prometheus

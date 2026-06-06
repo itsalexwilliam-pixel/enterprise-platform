@@ -1,0 +1,92 @@
+{
+    "name": "emailvalidator/enterprise-platform",
+    "description": "Enterprise Email Validation Platform - Similar to ZeroBounce, NeverBounce, MillionVerifier",
+    "keywords": ["email", "validation", "smtp", "dns", "deliverability"],
+    "license": "proprietary",
+    "type": "project",
+    "require": {
+        "php": "^8.3",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-redis": "*",
+        "ext-sockets": "*",
+        "ext-mbstring": "*",
+        "ext-intl": "*",
+
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.11",
+        "laravel/horizon": "^5.28",
+
+        "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1",
+        "tymon/jwt-auth": "^2.1",
+        "stripe/stripe-php": "^14.0",
+        "phpoffice/phpspreadsheet": "^5.3",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "barryvdh/laravel-dompdf": "^3.0",
+        "spatie/laravel-activitylog": "^4.7",
+        "spatie/laravel-permission": "^6.4",
+        "spatie/laravel-rate-limited-job-middleware": "^2.4",
+        "predis/predis": "^2.2",
+        "php-amqplib/php-amqplib": "^3.7",
+        "maatwebsite/excel": "4.x-dev@dev",
+        "intervention/image": "^3.5",
+        "nette/utils": "^4.0"
+    },
+    "require-dev": {
+        "laravel/telescope": "^5.2",
+        "laravel/pint": "^1.16",
+        "phpunit/phpunit": "^11.3",
+        "mockery/mockery": "^1.6",
+        "fakerphp/faker": "^1.23",
+        "laravel/sail": "^1.31",
+        "larastan/larastan": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php artisan storage:link"
+        ],
+        "lint": "pint",
+        "test": "phpunit --testdox",
+        "analyse": "phpstan analyse"
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "process-timeout": 0,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
