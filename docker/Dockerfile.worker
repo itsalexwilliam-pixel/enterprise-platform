@@ -48,7 +48,9 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    --ignore-platform-req=ext-gd \
+    --ignore-platform-req=ext-exif
 
 RUN chown -R www-data:www-data /var/www/html
 
