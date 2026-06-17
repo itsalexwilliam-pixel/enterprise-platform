@@ -69,11 +69,133 @@
         }
 
         /* ============================================================
+           BOOTSTRAP VARIABLE BRIDGE
+           Forces Bootstrap 5 to respect the active theme on EVERY component
+           ============================================================ */
+        html {
+            --bs-body-color:            var(--text);
+            --bs-body-bg:               var(--bg);
+            --bs-secondary-color:       var(--text-muted);
+            --bs-tertiary-color:        var(--text-muted);
+            --bs-emphasis-color:        var(--text);
+            --bs-border-color:          var(--border);
+            --bs-border-color-translucent: var(--border);
+            /* Cards */
+            --bs-card-bg:               var(--card-bg);
+            --bs-card-color:            var(--text);
+            --bs-card-border-color:     var(--border);
+            --bs-card-cap-bg:           transparent;
+            --bs-card-cap-color:        var(--text);
+            /* Tables */
+            --bs-table-color:           var(--text);
+            --bs-table-bg:              transparent;
+            --bs-table-border-color:    var(--border);
+            --bs-table-striped-bg:      transparent;
+            --bs-table-hover-bg:        var(--table-hover);
+            --bs-table-hover-color:     var(--text);
+            /* List group */
+            --bs-list-group-bg:         var(--card-bg);
+            --bs-list-group-color:      var(--text);
+            --bs-list-group-border-color: var(--border);
+            --bs-list-group-action-color: var(--text);
+            --bs-list-group-action-hover-color: var(--text);
+            --bs-list-group-hover-bg:   var(--table-hover);
+            --bs-list-group-active-bg:  var(--primary);
+            /* Modal */
+            --bs-modal-bg:              var(--card-bg);
+            --bs-modal-color:           var(--text);
+            --bs-modal-border-color:    var(--border);
+            --bs-modal-header-border-color: var(--border);
+            --bs-modal-footer-border-color: var(--border);
+            /* Dropdown */
+            --bs-dropdown-bg:           var(--card-bg);
+            --bs-dropdown-color:        var(--text);
+            --bs-dropdown-border-color: var(--border);
+            --bs-dropdown-link-color:   var(--text);
+            --bs-dropdown-link-hover-color: var(--text);
+            --bs-dropdown-link-hover-bg: var(--table-hover);
+            --bs-dropdown-divider-bg:   var(--border);
+            /* Inputs */
+            --bs-form-control-bg:       rgba(255,255,255,0.05);
+            --bs-form-control-border-color: var(--border);
+            /* Nav */
+            --bs-nav-link-color:        var(--text-muted);
+            --bs-nav-link-hover-color:  var(--text);
+            --bs-nav-tabs-border-color: var(--border);
+            --bs-nav-tabs-link-hover-border-color: var(--border);
+            --bs-nav-tabs-link-active-color: var(--text);
+            --bs-nav-tabs-link-active-bg: var(--card-bg);
+            --bs-nav-tabs-link-active-border-color: var(--border) var(--border) var(--card-bg);
+        }
+
+        /* ============================================================
            BASE STYLES
            ============================================================ */
         :root { --sidebar-width: 260px; }
         * { transition: background-color 0.25s, border-color 0.25s, color 0.15s; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+
+        /* Headings & text */
+        h1,h2,h3,h4,h5,h6 { color: var(--text); }
+        p { color: var(--text); }
+        small { color: var(--text-muted); }
+        .card-title  { color: var(--text)       !important; }
+        .card-text   { color: var(--text)       !important; }
+        .card-subtitle { color: var(--text-muted) !important; }
+        .lead        { color: var(--text); }
+        label        { color: var(--text); }
+        legend       { color: var(--text); }
+
+        /* List group */
+        .list-group-item { background: var(--card-bg) !important; border-color: var(--border) !important; color: var(--text) !important; }
+        .list-group-item-action:hover { background: var(--table-hover) !important; color: var(--text) !important; }
+
+        /* Modal */
+        .modal-content { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+        .modal-header, .modal-footer { border-color: var(--border); }
+        .modal-title { color: var(--text); }
+        .btn-close { filter: invert(1) grayscale(100%) brightness(2); }
+        [data-theme="light"] .btn-close { filter: none; }
+
+        /* Dropdown */
+        .dropdown-menu { background: var(--card-bg); border-color: var(--border); }
+        .dropdown-item { color: var(--text); }
+        .dropdown-item:hover, .dropdown-item:focus { background: var(--table-hover); color: var(--text); }
+        .dropdown-header { color: var(--text-muted); }
+        .dropdown-divider { border-color: var(--border); }
+
+        /* Nav tabs */
+        .nav-tabs { border-color: var(--border); }
+        .nav-tabs .nav-link { color: var(--text-muted); border-color: transparent; }
+        .nav-tabs .nav-link:hover { border-color: var(--border); color: var(--text); }
+        .nav-tabs .nav-link.active { background: var(--card-bg); border-color: var(--border) var(--border) transparent; color: var(--text); }
+        .nav-pills .nav-link { color: var(--text-muted); }
+        .nav-pills .nav-link.active { background: var(--primary); color: #fff; }
+
+        /* Input group */
+        .input-group-text { background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text); }
+        [data-theme="light"] .input-group-text { background: #f8f9fa; }
+
+        /* Select option (native) */
+        .form-select option { background: var(--card-bg); color: var(--text); }
+
+        /* Pagination */
+        .page-link { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+        .page-link:hover { background: var(--table-hover); border-color: var(--border); color: var(--text); }
+        .page-item.disabled .page-link { background: var(--card-bg); border-color: var(--border); color: var(--text-muted); }
+        .page-item.active .page-link { background: var(--primary); border-color: var(--primary); }
+
+        /* Accordion */
+        .accordion-item { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+        .accordion-button { background: var(--card-bg); color: var(--text); }
+        .accordion-button:not(.collapsed) { background: var(--nav-active-bg); color: var(--nav-active-color); }
+        .accordion-button::after { filter: invert(1); }
+        [data-theme="light"] .accordion-button::after { filter: none; }
+
+        /* Breadcrumb */
+        .breadcrumb-item { color: var(--text-muted); }
+        .breadcrumb-item.active { color: var(--text); }
+        .breadcrumb-item a { color: var(--primary); }
 
         /* Sidebar */
         .sidebar { position:fixed;top:0;left:0;height:100vh;width:var(--sidebar-width);background:var(--sidebar-bg);border-right:1px solid var(--border);z-index:1000;overflow-y:auto;transition:transform 0.3s; }
