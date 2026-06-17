@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,31 +8,127 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* ============================================================
+           THEME TOKENS (same palette as user layout)
+           ============================================================ */
+        [data-theme="dark"] {
+            --bg:#0a0b1a;--sidebar-bg:#10102a;--card-bg:#13132a;--topbar-bg:#10102a;
+            --border:rgba(255,255,255,0.10);--text:#e8eaf6;--text-muted:rgba(255,255,255,0.45);
+            --primary:#7b2ff7;--accent:#00d4ff;--table-hover:rgba(123,47,247,0.06);
+            --btn-grad:linear-gradient(135deg,#7b2ff7,#00d4ff);
+            --nav-active-bg:rgba(255,107,107,0.12);--nav-active-color:#ff6b6b;
+        }
+        [data-theme="light"] {
+            --bg:#f0f2f8;--sidebar-bg:#ffffff;--card-bg:#ffffff;--topbar-bg:#ffffff;
+            --border:rgba(0,0,0,0.10);--text:#1a1a2e;--text-muted:#6c757d;
+            --primary:#7b2ff7;--accent:#00b4d8;--table-hover:rgba(123,47,247,0.04);
+            --btn-grad:linear-gradient(135deg,#7b2ff7,#00b4d8);
+            --nav-active-bg:rgba(220,53,69,0.10);--nav-active-color:#dc3545;
+        }
+        [data-theme="pro-teal"] {
+            --bg:#071a1a;--sidebar-bg:#0a2222;--card-bg:#0d2828;--topbar-bg:#0a2222;
+            --border:rgba(0,212,180,0.14);--text:#d8f5f2;--text-muted:rgba(0,212,180,0.55);
+            --primary:#00d4b4;--accent:#00ffe0;--table-hover:rgba(0,212,180,0.06);
+            --btn-grad:linear-gradient(135deg,#00d4b4,#00ffe0);
+            --nav-active-bg:rgba(0,212,180,0.12);--nav-active-color:#00ffe0;
+        }
+        [data-theme="midnight-navy"] {
+            --bg:#060d1f;--sidebar-bg:#091530;--card-bg:#0d1c3a;--topbar-bg:#091530;
+            --border:rgba(100,149,237,0.14);--text:#d8e8ff;--text-muted:rgba(140,180,255,0.55);
+            --primary:#4a80f5;--accent:#90b4ff;--table-hover:rgba(74,128,245,0.06);
+            --btn-grad:linear-gradient(135deg,#4a80f5,#90b4ff);
+            --nav-active-bg:rgba(74,128,245,0.14);--nav-active-color:#90b4ff;
+        }
+        [data-theme="deep-emerald"] {
+            --bg:#061a0e;--sidebar-bg:#082015;--card-bg:#0b261a;--topbar-bg:#082015;
+            --border:rgba(0,200,100,0.14);--text:#d4f5e5;--text-muted:rgba(80,220,140,0.55);
+            --primary:#00c864;--accent:#4dffaa;--table-hover:rgba(0,200,100,0.06);
+            --btn-grad:linear-gradient(135deg,#00c864,#4dffaa);
+            --nav-active-bg:rgba(0,200,100,0.12);--nav-active-color:#4dffaa;
+        }
+        [data-theme="royal-purple"] {
+            --bg:#0f0520;--sidebar-bg:#180832;--card-bg:#1e0a3c;--topbar-bg:#180832;
+            --border:rgba(160,80,255,0.16);--text:#ecdcff;--text-muted:rgba(180,120,255,0.55);
+            --primary:#9040ff;--accent:#d080ff;--table-hover:rgba(160,80,255,0.07);
+            --btn-grad:linear-gradient(135deg,#9040ff,#d080ff);
+            --nav-active-bg:rgba(144,64,255,0.16);--nav-active-color:#d080ff;
+        }
+        [data-theme="charcoal"] {
+            --bg:#111111;--sidebar-bg:#1a1a1a;--card-bg:#222222;--topbar-bg:#1a1a1a;
+            --border:rgba(255,255,255,0.09);--text:#e2e2e2;--text-muted:rgba(255,255,255,0.40);
+            --primary:#999;--accent:#bbb;--table-hover:rgba(255,255,255,0.04);
+            --btn-grad:linear-gradient(135deg,#666,#aaa);
+            --nav-active-bg:rgba(255,255,255,0.09);--nav-active-color:#fff;
+        }
+
+        /* ============================================================
+           BASE
+           ============================================================ */
         :root { --sidebar-width: 260px; }
-        body { background: #0a0b1a; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: #10102a; border-right: 1px solid rgba(255,255,255,0.08); z-index: 1000; overflow-y: auto; }
-        .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .brand-logo { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 3px; }
-        .brand-logo img { max-width: 150px; height: auto; }
-        .sidebar .nav-link { color: rgba(255,255,255,0.6); padding: 0.6rem 1rem; border-radius: 8px; margin: 2px 0.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; transition: all 0.2s; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,107,107,0.12); color: #ff6b6b; }
-        .sidebar .nav-link i { width: 18px; text-align: center; }
-        .sidebar-section { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.25); padding: 1rem 1.5rem 0.25rem; }
-        .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
-        .topbar { background: #10102a; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .admin-badge { background: rgba(255,107,107,0.2); border: 1px solid rgba(255,107,107,0.4); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; color: #ff6b6b; font-weight: 700; text-transform: uppercase; }
-        .card { background: #13132a; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; }
-        .card-header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .table { color: #e0e0e8; }
-        .table thead th { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); font-size: 0.78rem; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 600; }
-        .table tbody td { border-color: rgba(255,255,255,0.06); vertical-align: middle; }
-        .btn-primary { background: linear-gradient(135deg, #7b2ff7, #00d4ff); border: none; }
-        .form-control, .form-select { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e8; }
-        .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.07); border-color: #7b2ff7; color: #fff; box-shadow: 0 0 0 0.2rem rgba(123,47,247,0.2); }
-        .alert-success { background: rgba(25,135,84,0.15); border-color: rgba(25,135,84,0.3); color: #6feaaa; }
-        .alert-danger { background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.3); color: #ff8a9a; }
-        .page-content { padding: 1.5rem; }
-        ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        * { transition: background-color 0.25s, border-color 0.25s, color 0.15s; }
+        body { background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif; }
+
+        .sidebar { position:fixed;top:0;left:0;height:100vh;width:var(--sidebar-width);background:var(--sidebar-bg);border-right:1px solid var(--border);z-index:1000;overflow-y:auto; }
+        .sidebar-brand { padding:1rem 1.25rem;border-bottom:1px solid var(--border); }
+        .brand-logo { font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:0.04em;text-transform:uppercase;margin-top:3px; }
+        .brand-logo img { max-width:150px;height:auto; }
+        .sidebar .nav-link { color:var(--text-muted);padding:0.6rem 1rem;border-radius:8px;margin:2px 0.5rem;display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;transition:all 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background:var(--nav-active-bg);color:var(--nav-active-color); }
+        .sidebar .nav-link i { width:18px;text-align:center; }
+        .sidebar-section { font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);padding:1rem 1.5rem 0.25rem; }
+        .main-content { margin-left:var(--sidebar-width);min-height:100vh; }
+        .topbar { background:var(--topbar-bg);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100; }
+        .admin-badge { background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.4);padding:0.2rem 0.6rem;border-radius:20px;font-size:0.7rem;color:#ff6b6b;font-weight:700;text-transform:uppercase; }
+
+        /* Cards */
+        .card { background:var(--card-bg);border:1px solid var(--border);border-radius:12px; }
+        .card-header { background:transparent;border-bottom:1px solid var(--border); }
+
+        /* Tables — full Bootstrap override to kill white rows */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: transparent;
+            --bs-table-hover-bg: var(--table-hover);
+            --bs-table-color: var(--text);
+            --bs-table-border-color: var(--border);
+            --bs-table-hover-color: var(--text);
+            color: var(--text);
+        }
+        .table thead th { background:transparent !important;border-color:var(--border);font-size:0.78rem;text-transform:uppercase;color:var(--text-muted);font-weight:600; }
+        .table tbody td { border-color:var(--border);vertical-align:middle;background:transparent !important; }
+        .table tbody tr { background:transparent !important; }
+        .table tbody tr:hover { background:var(--table-hover) !important; }
+        .table-striped>tbody>tr:nth-of-type(odd)>* { background:transparent !important; }
+
+        /* text-muted */
+        .text-muted { color:var(--text-muted) !important; }
+
+        /* Buttons */
+        .btn-primary { background:var(--btn-grad) !important;border:none !important;color:#fff !important; }
+
+        /* Forms */
+        .form-control,.form-select { background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text); }
+        [data-theme="light"] .form-control,
+        [data-theme="light"] .form-select { background:#fff;color:#1a1a2e; }
+        .form-control:focus,.form-select:focus { background:rgba(255,255,255,0.07);border-color:var(--primary);color:var(--text);box-shadow:0 0 0 0.2rem rgba(123,47,247,0.20); }
+
+        /* Alerts */
+        .alert-success { background:rgba(25,135,84,0.15);border-color:rgba(25,135,84,0.3);color:#6feaaa; }
+        .alert-danger  { background:rgba(220,53,69,0.15);border-color:rgba(220,53,69,0.3);color:#ff8a9a; }
+
+        /* Theme switcher */
+        .theme-btn { background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:0.32rem 0.65rem;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;gap:0.4rem; }
+        .theme-btn:hover { background:rgba(255,255,255,0.10);color:var(--text); }
+        .theme-dropdown { position:absolute;top:calc(100% + 8px);right:0;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:0.4rem;min-width:185px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.45);display:none; }
+        .theme-dropdown.open { display:block; }
+        .theme-item { display:flex;align-items:center;gap:0.6rem;padding:0.42rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.83rem;color:var(--text); }
+        .theme-item:hover { background:rgba(255,255,255,0.07); }
+        .theme-item.active { background:rgba(255,255,255,0.10);font-weight:600; }
+        .theme-swatch { width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.18); }
+
+        .page-content { padding:1.5rem; }
+        ::-webkit-scrollbar { width:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15);border-radius:3px; }
     </style>
     @stack('styles')
 </head>
@@ -64,20 +160,51 @@
         <a href="{{ route('admin.audit') }}" class="nav-link {{ request()->routeIs('admin.audit') ? 'active' : '' }}"><i class="fas fa-clipboard-list"></i> Audit Log</a>
         <a href="{{ route('admin.settings') }}" class="nav-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"><i class="fas fa-gear"></i> Settings</a>
 
-        <div class="sidebar-section mt-3">
+        <div class="sidebar-section mt-3"></div>
         <a href="{{ route('user.dashboard') }}" class="nav-link"><i class="fas fa-arrow-left"></i> User Panel</a>
-        </div>
     </div>
 </nav>
 
 <div class="main-content">
     <div class="topbar">
         <div class="d-flex align-items-center gap-3">
-            <h6 class="mb-0" style="font-size:1rem;font-weight:600;">@yield('page-title', 'Dashboard')</h6>
+            <h6 class="mb-0" style="font-size:1rem;font-weight:600;color:var(--text);">@yield('page-title', 'Dashboard')</h6>
             <span class="admin-badge">Admin</span>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <span style="font-size:0.85rem;color:rgba(255,255,255,0.5);">{{ auth()->user()?->name }}</span>
+            <span style="font-size:0.85rem;color:var(--text-muted);">{{ auth()->user()?->name }}</span>
+
+            <!-- Theme Switcher -->
+            <div class="position-relative" id="adminThemeWrap">
+                <button class="theme-btn" onclick="toggleAdminThemeDD()" title="Switch Theme">
+                    <i class="fas fa-palette"></i>
+                    <span class="d-none d-lg-inline" id="adminThemeLabel">Theme</span>
+                </button>
+                <div class="theme-dropdown" id="adminThemeDD">
+                    <div class="theme-item" data-t="dark"          onclick="setTheme('dark')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#0a0b1a,#7b2ff7)"></span> Dark
+                    </div>
+                    <div class="theme-item" data-t="light"         onclick="setTheme('light')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#f0f2f8,#7b2ff7)"></span> Light
+                    </div>
+                    <div class="theme-item" data-t="pro-teal"      onclick="setTheme('pro-teal')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#071a1a,#00d4b4)"></span> Pro Teal
+                    </div>
+                    <div class="theme-item" data-t="midnight-navy" onclick="setTheme('midnight-navy')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#060d1f,#4a80f5)"></span> Midnight Navy
+                    </div>
+                    <div class="theme-item" data-t="deep-emerald"  onclick="setTheme('deep-emerald')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#061a0e,#00c864)"></span> Deep Emerald
+                    </div>
+                    <div class="theme-item" data-t="royal-purple"  onclick="setTheme('royal-purple')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#0f0520,#9040ff)"></span> Royal Purple
+                    </div>
+                    <div class="theme-item" data-t="charcoal"      onclick="setTheme('charcoal')">
+                        <span class="theme-swatch" style="background:linear-gradient(135deg,#111,#aaa)"></span> Charcoal
+                    </div>
+                </div>
+            </div>
+
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="btn btn-sm" style="background:rgba(220,53,69,0.15);border:1px solid rgba(220,53,69,0.3);color:#ff8a9a;font-size:0.8rem;">
@@ -103,6 +230,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const THEME_NAMES = {
+        'dark':'Dark','light':'Light','pro-teal':'Pro Teal',
+        'midnight-navy':'Midnight Navy','deep-emerald':'Deep Emerald',
+        'royal-purple':'Royal Purple','charcoal':'Charcoal'
+    };
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        const lbl = document.getElementById('adminThemeLabel');
+        if (lbl) lbl.textContent = THEME_NAMES[t] || 'Theme';
+        document.querySelectorAll('.theme-item').forEach(el => el.classList.toggle('active', el.dataset.t === t));
+    }
+    function setTheme(t) { localStorage.setItem('ev_theme', t); applyTheme(t); closeAdminThemeDD(); }
+    function toggleAdminThemeDD() { document.getElementById('adminThemeDD').classList.toggle('open'); }
+    function closeAdminThemeDD() { document.getElementById('adminThemeDD').classList.remove('open'); }
+    document.addEventListener('click', e => {
+        if (!document.getElementById('adminThemeWrap').contains(e.target)) closeAdminThemeDD();
+    });
+    (function(){ applyTheme(localStorage.getItem('ev_theme') || 'dark'); })();
+</script>
 @stack('scripts')
 </body>
 </html>
