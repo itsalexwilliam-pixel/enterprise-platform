@@ -17,6 +17,7 @@ class CreditPackageSeeder extends Seeder
         ];
 
         foreach ($packages as $pkg) {
+            $pkg['price_per_credit'] = round($pkg['price'] / $pkg['credits'], 6);
             CreditPackage::firstOrCreate(
                 ['name' => $pkg['name']],
                 array_merge($pkg, ['is_active' => true])
