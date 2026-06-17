@@ -103,9 +103,14 @@ class ScoringEngine
                 $score += self::WEIGHTS['smtp_valid'];
                 $breakdown['smtp_valid'] = self::WEIGHTS['smtp_valid'];
             } elseif ($result['smtp_valid'] === false) {
-                // Confirmed invalid — heavy penalty
-                $score = max(0, $score - 60);
-                $breakdown['smtp_invalid'] = -60;
+                if ($result['smtp_connectable'] ?? false) {
+                    // We connected but RCPT TO was rejected — confirmed invalid
+                    $score = max(0, $score - 60);
+                    $breakdown['smtp_invalid'] = -60;
+                }
+                // smtp_connectable === false means port 25 was unreachable
+                // (e.g. AWS EC2 blocks outbound port 25). No penalty — treat
+                // the same as null/unknown: no points added or subtracted.
             }
             // null = unknown, no points added or subtracted
         }

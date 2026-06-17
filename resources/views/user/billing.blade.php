@@ -96,21 +96,21 @@
                 </div>
                 @else
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0" style="font-size:0.85rem;">
-                        <thead>
-                            <tr>
-                                <th class="px-4">Reference</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                                <th>Credits</th>
-                                <th>Amount</th>
-                                <th class="px-4">Date</th>
+                    <table class="table table-dark table-hover mb-0" style="font-size:0.85rem;--bs-table-bg:transparent;--bs-table-striped-bg:transparent;--bs-table-hover-bg:rgba(255,255,255,0.04);--bs-table-border-color:rgba(255,255,255,0.06);--bs-table-color:rgba(255,255,255,0.7);">
+                        <thead style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                            <tr style="background:rgba(255,255,255,0.03);">
+                                <th class="px-4" style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;padding-top:12px;padding-bottom:12px;">Reference</th>
+                                <th style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;">Type</th>
+                                <th style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;">Description</th>
+                                <th style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;">Credits</th>
+                                <th style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;">Amount</th>
+                                <th class="px-4" style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border:none;">Date</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="border-color:rgba(255,255,255,0.06);">
                             @foreach($transactions as $tx)
-                            <tr>
-                                <td class="px-4"><code style="font-size:0.78rem;color:rgba(255,255,255,0.4);">{{ $tx->reference }}</code></td>
+                            <tr style="border-color:rgba(255,255,255,0.06);">
+                                <td class="px-4" style="border-color:rgba(255,255,255,0.06);"><code style="font-size:0.78rem;color:rgba(255,255,255,0.4);">{{ $tx->reference }}</code></td>
                                 <td>
                                     @php $typeColors = ['purchase'=>'#6feaaa','subscription'=>'#6ff0ff','deduction'=>'#ff8a9a','refund'=>'#ffd60a','bonus'=>'#c084fc','adjustment'=>'#adb5bd']; @endphp
                                     <span style="color:{{ $typeColors[$tx->type] ?? '#adb5bd' }};font-size:0.8rem;text-transform:capitalize;">{{ $tx->type }}</span>

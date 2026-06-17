@@ -39,6 +39,16 @@ class BulkController extends Controller
         $uuid    = Str::uuid()->toString();
         $path    = "uploads/{$user->id}/{$uuid}.{$ext}";
 
+        // Resolve job name before storing the file (UploadedFile metadata is always available here)
+        $originalName = $file->getClientOriginalName();
+        $jobName      = ($request->filled('name') && is_string($request->input('name')))
+            ? trim($request->input('name'))
+            : $originalName;
+        // Final safety net — should never be empty, but guard anyway
+        if (empty($jobName)) {
+            $jobName = $originalName ?: ('Job-' . now()->format('Ymd-His'));
+        }
+
         Storage::disk('local')->putFileAs(dirname($path), $file, basename($path));
 
         $totalEmails = $this->countEmails(Storage::disk('local')->path($path), $ext);
@@ -58,8 +68,8 @@ class BulkController extends Controller
         $job = ValidationJob::create([
             'user_id'      => $user->id,
             'uuid'         => $uuid,
-            'name'         => $request->input('name', $file->getClientOriginalName()),
-            'filename'     => $file->getClientOriginalName(),
+            'name'         => $jobName,
+            'filename'     => $originalName,
             'file_path'    => $path,
             'file_type'    => $ext,
             'status'       => 'pending',

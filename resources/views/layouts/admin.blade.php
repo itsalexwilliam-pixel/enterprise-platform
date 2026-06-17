@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') - Email Validator Pro Admin</title>
+    <title>@yield('title', 'Admin') - Novelio Technologies LLC</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --sidebar-width: 260px; }
         body { background: #0a0a14; color: #e0e0e8; font-family: 'Segoe UI', sans-serif; }
         .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: #12121f; border-right: 1px solid rgba(255,255,255,0.08); z-index: 1000; overflow-y: auto; }
-        .sidebar-brand { padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .brand-logo { font-size: 1rem; font-weight: 800; color: #ff6b6b; }
+        .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .brand-logo { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 3px; }
+        .brand-logo img { max-width: 150px; height: auto; }
         .sidebar .nav-link { color: rgba(255,255,255,0.6); padding: 0.6rem 1rem; border-radius: 8px; margin: 2px 0.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; transition: all 0.2s; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,107,107,0.1); color: #ff6b6b; }
         .sidebar .nav-link i { width: 18px; text-align: center; }
@@ -37,8 +38,11 @@
 </head>
 <body>
 <nav class="sidebar">
-    <div class="sidebar-brand d-flex align-items-center gap-2">
-        <span class="brand-logo"><i class="fas fa-shield-halved me-2"></i>Admin Panel</span>
+    <div class="sidebar-brand text-center">
+        <a href="{{ url('/') }}" class="text-decoration-none d-block">
+            <img src="{{ asset('images/novelio-logo.webp') }}" alt="Novelio Technologies LLC" style="max-width:155px;height:auto;filter:brightness(1.1);">
+        </a>
+        <div class="brand-logo mt-1"><i class="fas fa-shield-halved me-1" style="color:#ff6b6b;"></i>Admin Panel</div>
     </div>
     <div class="mt-2">
         <div class="sidebar-section">Overview</div>

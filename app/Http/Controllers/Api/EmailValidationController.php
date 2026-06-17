@@ -55,7 +55,7 @@ class EmailValidationController extends Controller
      *   ...
      * }
      */
-    public function validate(ValidateEmailRequest $request): JsonResponse
+    public function validateEmail(ValidateEmailRequest $request): JsonResponse
     {
         $startTime = microtime(true);
         $user      = $request->user();
@@ -105,7 +105,8 @@ class EmailValidationController extends Controller
                 $user->deductCredits(1, "Email validation: {$email}");
             }
 
-            // Save to database
+            // Save to database (ensure user_id is present — cache strips it)
+            $result['user_id'] = $user->id;
             $savedResult = $this->validationService->saveResult($result);
 
             // Update API key stats

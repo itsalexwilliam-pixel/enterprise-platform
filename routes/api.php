@@ -55,7 +55,7 @@ Route::prefix('v1')
     // --------------------------------------------------------
     // EMAIL VALIDATION
     // --------------------------------------------------------
-    Route::post('/validate',         [EmailValidationController::class, 'validate'])
+    Route::post('/validate',         [EmailValidationController::class, 'validateEmail'])
         ->name('api.validate');
 
     Route::post('/validate/batch',   [EmailValidationController::class, 'validateBatch'])

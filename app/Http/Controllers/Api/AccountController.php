@@ -58,9 +58,9 @@ class AccountController extends Controller
     public function listApiKeys(Request $request): JsonResponse
     {
         $keys = $request->user()->apiKeys()
-            ->select('id', 'name', 'key', 'status', 'rate_limit', 'requests_today', 'last_used_at', 'created_at')
+            ->select('id', 'name', 'key', 'key_prefix', 'status', 'rate_limit_per_minute', 'rate_limit_per_day', 'requests_today', 'total_requests', 'last_used_at', 'expires_at', 'created_at')
             ->get()
-            ->map(fn ($k) => array_merge($k->toArray(), ['key' => substr($k->key, 0, 8) . '...']));
+            ->map(fn ($k) => array_merge($k->toArray(), ['key' => $k->key_prefix . str_repeat('*', 50)]));
 
         return response()->json(['success' => true, 'data' => $keys]);
     }
@@ -69,11 +69,13 @@ class AccountController extends Controller
     {
         $request->validate(['name' => 'required|string|max:100']);
 
+        $rawKey = \App\Models\ApiKey::generateKey();
         $key = \App\Models\ApiKey::create([
-            'user_id' => $request->user()->id,
-            'name'    => $request->name,
-            'key'     => 'evp_' . bin2hex(random_bytes(24)),
-            'status'  => 'active',
+            'user_id'    => $request->user()->id,
+            'name'       => $request->name,
+            'key'        => $rawKey,
+            'key_prefix' => substr($rawKey, 0, 8),
+            'status'     => 'active',
         ]);
 
         return response()->json(['success' => true, 'data' => $key], 201);

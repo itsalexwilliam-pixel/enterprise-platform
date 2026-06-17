@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Email Validator Pro')</title>
+    <title>@yield('title', 'Novelio Technologies LLC')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
-        .brand-logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #00d4ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-logo img { max-width: 190px; height: auto; filter: drop-shadow(0 2px 8px rgba(0,212,255,0.25)); }
+        .brand-tagline { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 4px; letter-spacing: 0.05em; }
         .btn-primary { background: linear-gradient(135deg, #7b2ff7, #00d4ff); border: none; }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
         .form-control, .form-select { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
@@ -31,9 +32,10 @@
         <div class="row justify-content-center">
             <div class="col-md-5 col-lg-4">
                 <div class="text-center mb-4">
-                    <a href="{{ url('/') }}" class="brand-logo text-decoration-none">
-                        <i class="fas fa-envelope-circle-check me-2"></i>EmailValidator Pro
+                    <a href="{{ url('/') }}" class="brand-logo text-decoration-none d-inline-block">
+                        <img src="{{ asset('images/novelio-logo.webp') }}" alt="Novelio Technologies LLC">
                     </a>
+                    <div class="brand-tagline">Email Validator Pro</div>
                 </div>
                 <div class="auth-card p-4 p-md-5">
                     @yield('content')

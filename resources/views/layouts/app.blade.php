@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') - Email Validator Pro</title>
+    <title>@yield('title', 'Dashboard') - Novelio Technologies LLC</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -19,8 +19,9 @@
         body { background: #0a0a14; color: #e0e0e8; font-family: 'Segoe UI', sans-serif; }
         /* Sidebar */
         .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border); z-index: 1000; overflow-y: auto; transition: transform 0.3s; }
-        .sidebar-brand { padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border); }
-        .brand-logo { font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+        .brand-logo { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px; }
+        .brand-logo img { max-width: 150px; height: auto; filter: brightness(1.05); }
         .sidebar .nav-link { color: rgba(255,255,255,0.6); padding: 0.6rem 1.25rem; border-radius: 8px; margin: 2px 0.5rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; font-size: 0.9rem; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(123,47,247,0.15); color: #fff; }
         .sidebar .nav-link i { width: 18px; text-align: center; }
@@ -82,10 +83,11 @@
 
 <!-- Sidebar -->
 <nav class="sidebar d-flex flex-column" id="sidebar">
-    <div class="sidebar-brand">
-        <span class="brand-logo">
-            <i class="fas fa-envelope-circle-check me-2"></i>EV Pro
-        </span>
+    <div class="sidebar-brand text-center">
+        <a href="{{ url('/') }}" class="text-decoration-none d-block">
+            <img src="{{ asset('images/novelio-logo.webp') }}" alt="Novelio Technologies LLC" style="max-width:155px;height:auto;filter:brightness(1.1);">
+        </a>
+        <div class="brand-logo mt-1">Email Validator Pro</div>
     </div>
 
     <div class="mt-2 flex-grow-1">

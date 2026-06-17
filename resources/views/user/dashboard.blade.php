@@ -101,7 +101,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="table table-dark mb-0" style="--bs-table-bg:transparent;--bs-table-hover-bg:rgba(255,255,255,0.04);--bs-table-border-color:rgba(255,255,255,0.06);--bs-table-color:rgba(255,255,255,0.7);">
                 <thead>
                     <tr>
                         <th class="ps-3">Name</th>

@@ -17,7 +17,7 @@ class BillingController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        $plans         = Plan::where('status', 'active')
+        $plans         = Plan::where('is_active', true)
             ->where('is_visible', true)
             ->orderBy('sort_order')
             ->get();

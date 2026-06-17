@@ -186,13 +186,21 @@ createApp({
             try {
                 const res = await fetch('/api/v1/validate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-API-Key': '{{ $apiKey->key }}'
+                    },
                     body: JSON.stringify({ email: email.value })
                 });
+                if (!res.ok && res.status !== 422) {
+                    error.value = 'Server error (' + res.status + '). Please try again.';
+                    return;
+                }
                 const data = await res.json();
                 if (data.success === false) { error.value = data.error || 'Validation failed'; }
                 else { result.value = data.data || data; }
-            } catch (e) { error.value = 'Network error. Please try again.'; }
+            } catch (e) { error.value = 'Network error. Please try again. (' + e.message + ')'; }
             finally { loading.value = false; }
         }
 
@@ -203,7 +211,7 @@ createApp({
             props: ['ok', 'label'],
             template: `<div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;padding:2px 0;color:rgba(255,255,255,0.65);">
                 <i :class="ok ? 'fas fa-circle-check' : 'fas fa-circle-xmark'" :style="{color: ok ? '#6feaaa' : '#ff8a9a', width:'14px'}"></i>
-                {{ label }}
+                @{{ label }}
             </div>`
         },
         FlagItem: {
@@ -211,7 +219,7 @@ createApp({
             template: `<div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;padding:2px 0;color:rgba(255,255,255,0.65);">
                 <i :class="flag ? 'fas fa-triangle-exclamation' : 'fas fa-circle-check'"
                    :style="{color: flag ? (danger ? '#ff8a9a' : '#ffd60a') : '#6feaaa', width:'14px'}"></i>
-                {{ label }}
+                @{{ label }}
             </div>`
         }
     }

@@ -246,7 +246,21 @@ class EmailValidationService
                 if ($result['is_catch_all']) return self::STATUS_CATCH_ALL;
                 return self::STATUS_VALID;
             }
-            if ($result['smtp_valid'] === false) return self::STATUS_INVALID;
+            if ($result['smtp_valid'] === false) {
+                // If we could not connect at all (port 25 blocked, firewall, timeout)
+                // but DNS is healthy, we cannot call the email invalid — we simply
+                // could not verify it. AWS EC2 blocks port 25 outbound by default.
+                if (! $result['smtp_connectable'] && $result['mx_found']) {
+                    return self::STATUS_UNKNOWN;
+                }
+                // Connected but RCPT TO was rejected. For major free-email providers
+                // (Gmail, Yahoo, Outlook) that block SMTP probing to prevent harvesting,
+                // treat as risky rather than definitively invalid.
+                if ($result['smtp_connectable'] && $result['is_free_email']) {
+                    return self::STATUS_RISKY;
+                }
+                return self::STATUS_INVALID;
+            }
         }
 
         // Risky conditions

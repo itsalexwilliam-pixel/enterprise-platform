@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\ApiKey;
 use App\Models\ValidationJob;
 use App\Models\ValidationResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -32,7 +34,24 @@ class DashboardController extends Controller
 
     public function validatePage()
     {
-        $apiKey = auth()->user()->apiKeys()->where('status', 'active')->first();
+        $user   = auth()->user();
+        $apiKey = $user->apiKeys()->where('status', 'active')->first();
+
+        // Auto-create a Web UI key if the user has none — so the validate page
+        // always has a working API key to call /api/v1/validate with.
+        if (! $apiKey) {
+            $rawKey = ApiKey::generateKey(); // ev_ + 56 random chars
+            $apiKey = ApiKey::create([
+                'user_id'               => $user->id,
+                'name'                  => 'Web UI Key',
+                'key'                   => $rawKey,
+                'key_prefix'            => substr($rawKey, 0, 10),
+                'status'                => 'active',
+                'rate_limit_per_minute' => 60,
+                'rate_limit_per_day'    => 0,
+            ]);
+        }
+
         return view('user.validate', compact('apiKey'));
     }
 

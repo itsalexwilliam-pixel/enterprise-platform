@@ -96,7 +96,7 @@ class ApiKeyMiddleware
         $request->attributes->set('api_key', $apiKey);
 
         // Authenticate the user associated with this key
-        Auth::login($apiKey->user);
+        auth()->setUser($apiKey->user);
 
         // Set rate limit headers
         $response = $next($request);
