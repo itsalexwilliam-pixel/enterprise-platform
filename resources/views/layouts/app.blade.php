@@ -12,13 +12,13 @@
             --sidebar-width: 260px;
             --primary: #7b2ff7;
             --accent: #00d4ff;
-            --dark: #111827;
-            --card-bg: #1e2538;
-            --border: rgba(255,255,255,0.12);
+            --dark: #0a0b1a;
+            --card-bg: #13132a;
+            --border: rgba(255,255,255,0.10);
         }
-        body { background: #111827; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0a0b1a; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
         /* Sidebar */
-        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border); z-index: 1000; overflow-y: auto; transition: transform 0.3s; }
+        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: #10102a; border-right: 1px solid var(--border); z-index: 1000; overflow-y: auto; transition: transform 0.3s; }
         .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
         .brand-logo { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px; }
         .brand-logo img { max-width: 150px; height: auto; filter: brightness(1.05); }
@@ -29,7 +29,7 @@
         /* Main content */
         .main-content { margin-left: var(--sidebar-width); padding: 0; min-height: 100vh; }
         /* Topbar */
-        .topbar { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .topbar { background: #10102a; border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .topbar .page-title { font-size: 1.1rem; font-weight: 600; margin: 0; }
         .credit-badge { background: rgba(123,47,247,0.2); border: 1px solid rgba(123,47,247,0.4); padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.8rem; color: #c084fc; }
         /* Cards */
@@ -41,9 +41,9 @@
         .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
         /* Tables */
         .table { color: #e0e0e8; }
-        .table thead th { background: rgba(255,255,255,0.05); border-color: var(--border); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); font-weight: 600; }
-        .table tbody td { border-color: var(--border); vertical-align: middle; }
-        .table tbody tr:hover { background: rgba(255,255,255,0.03); }
+        .table thead th { background: rgba(255,255,255,0.04); border-color: var(--border); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); font-weight: 600; }
+        .table tbody td { border-color: rgba(255,255,255,0.07); vertical-align: middle; }
+        .table tbody tr:hover { background: rgba(123,47,247,0.05); }
         /* Badges */
         .badge-valid { background: rgba(25,135,84,0.2); color: #6feaaa; border: 1px solid rgba(25,135,84,0.3); }
         .badge-invalid { background: rgba(220,53,69,0.2); color: #ff8a9a; border: 1px solid rgba(220,53,69,0.3); }

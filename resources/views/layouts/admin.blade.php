@@ -9,26 +9,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --sidebar-width: 260px; }
-        body { background: #111827; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: #1a2235; border-right: 1px solid rgba(255,255,255,0.12); z-index: 1000; overflow-y: auto; }
+        body { background: #0a0b1a; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: #10102a; border-right: 1px solid rgba(255,255,255,0.08); z-index: 1000; overflow-y: auto; }
         .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .brand-logo { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 3px; }
         .brand-logo img { max-width: 150px; height: auto; }
         .sidebar .nav-link { color: rgba(255,255,255,0.6); padding: 0.6rem 1rem; border-radius: 8px; margin: 2px 0.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; transition: all 0.2s; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,107,107,0.1); color: #ff6b6b; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,107,107,0.12); color: #ff6b6b; }
         .sidebar .nav-link i { width: 18px; text-align: center; }
         .sidebar-section { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.25); padding: 1rem 1.5rem 0.25rem; }
         .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
-        .topbar { background: #1a2235; border-bottom: 1px solid rgba(255,255,255,0.12); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .topbar { background: #10102a; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .admin-badge { background: rgba(255,107,107,0.2); border: 1px solid rgba(255,107,107,0.4); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; color: #ff6b6b; font-weight: 700; text-transform: uppercase; }
-        .card { background: #1e2538; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; }
+        .card { background: #13132a; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; }
         .card-header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .table { color: #e0e0e8; }
-        .table thead th { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); font-size: 0.78rem; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 600; }
+        .table thead th { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); font-size: 0.78rem; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 600; }
         .table tbody td { border-color: rgba(255,255,255,0.06); vertical-align: middle; }
-        .btn-primary { background: #ff6b6b; border: none; }
-        .form-control, .form-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e8; }
-        .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.08); border-color: #ff6b6b; color: #fff; box-shadow: none; }
+        .btn-primary { background: linear-gradient(135deg, #7b2ff7, #00d4ff); border: none; }
+        .form-control, .form-select { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e8; }
+        .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.07); border-color: #7b2ff7; color: #fff; box-shadow: 0 0 0 0.2rem rgba(123,47,247,0.2); }
         .alert-success { background: rgba(25,135,84,0.15); border-color: rgba(25,135,84,0.3); color: #6feaaa; }
         .alert-danger { background: rgba(220,53,69,0.15); border-color: rgba(220,53,69,0.3); color: #ff8a9a; }
         .page-content { padding: 1.5rem; }
