@@ -8,8 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+        body { background: linear-gradient(135deg, #1a2744 0%, #1e3a5f 50%, #1a3a6e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: rgba(255,255,255,0.09); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; }
         .brand-logo img { max-width: 190px; height: auto; filter: drop-shadow(0 2px 8px rgba(0,212,255,0.25)); }
         .brand-tagline { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 4px; letter-spacing: 0.05em; }
         .btn-primary { background: linear-gradient(135deg, #7b2ff7, #00d4ff); border: none; }

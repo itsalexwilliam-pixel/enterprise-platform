@@ -12,11 +12,11 @@
             --sidebar-width: 260px;
             --primary: #7b2ff7;
             --accent: #00d4ff;
-            --dark: #0f0f1a;
-            --card-bg: #1a1a2e;
-            --border: rgba(255,255,255,0.08);
+            --dark: #111827;
+            --card-bg: #1e2538;
+            --border: rgba(255,255,255,0.12);
         }
-        body { background: #0a0a14; color: #e0e0e8; font-family: 'Segoe UI', sans-serif; }
+        body { background: #111827; color: #e8eaf6; font-family: 'Segoe UI', sans-serif; }
         /* Sidebar */
         .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border); z-index: 1000; overflow-y: auto; transition: transform 0.3s; }
         .sidebar-brand { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
