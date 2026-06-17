@@ -44,7 +44,10 @@ class SystemController extends Controller
             'extensions'    => ['pdo_mysql', 'redis', 'mbstring', 'bcmath', 'gd', 'zip'],
         ];
 
-        $workers = \App\Models\Worker::orderBy('queue')->get();
+        $workers = collect();
+        try {
+            $workers = \App\Models\Worker::orderBy('type')->get();
+        } catch (\Throwable) {}
 
         return view('admin.system', compact('queues', 'redisInfo', 'mysqlConnections', 'phpInfo', 'workers'));
     }

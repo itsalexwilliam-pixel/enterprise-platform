@@ -13,50 +13,50 @@
            ============================================================ */
         [data-theme="dark"] {
             --bg:#0a0b1a;--sidebar-bg:#10102a;--card-bg:#13132a;--topbar-bg:#10102a;
-            --border:rgba(255,255,255,0.10);--text:#e8eaf6;--text-muted:rgba(255,255,255,0.45);
-            --primary:#7b2ff7;--accent:#00d4ff;--table-hover:rgba(123,47,247,0.06);
+            --border:rgba(255,255,255,0.10);--text:#e8eaf6;--text-muted:rgba(255,255,255,0.62);
+            --primary:#7b2ff7;--accent:#00d4ff;--table-hover:rgba(123,47,247,0.07);
             --btn-grad:linear-gradient(135deg,#7b2ff7,#00d4ff);
             --nav-active-bg:rgba(255,107,107,0.12);--nav-active-color:#ff6b6b;
         }
         [data-theme="light"] {
             --bg:#f0f2f8;--sidebar-bg:#ffffff;--card-bg:#ffffff;--topbar-bg:#ffffff;
-            --border:rgba(0,0,0,0.10);--text:#1a1a2e;--text-muted:#6c757d;
+            --border:rgba(0,0,0,0.10);--text:#1a1a2e;--text-muted:#5a6278;
             --primary:#7b2ff7;--accent:#00b4d8;--table-hover:rgba(123,47,247,0.04);
             --btn-grad:linear-gradient(135deg,#7b2ff7,#00b4d8);
             --nav-active-bg:rgba(220,53,69,0.10);--nav-active-color:#dc3545;
         }
         [data-theme="pro-teal"] {
             --bg:#071a1a;--sidebar-bg:#0a2222;--card-bg:#0d2828;--topbar-bg:#0a2222;
-            --border:rgba(0,212,180,0.14);--text:#d8f5f2;--text-muted:rgba(0,212,180,0.55);
-            --primary:#00d4b4;--accent:#00ffe0;--table-hover:rgba(0,212,180,0.06);
+            --border:rgba(0,212,180,0.14);--text:#d8f5f2;--text-muted:rgba(180,240,225,0.70);
+            --primary:#00d4b4;--accent:#00ffe0;--table-hover:rgba(0,212,180,0.07);
             --btn-grad:linear-gradient(135deg,#00d4b4,#00ffe0);
             --nav-active-bg:rgba(0,212,180,0.12);--nav-active-color:#00ffe0;
         }
         [data-theme="midnight-navy"] {
             --bg:#060d1f;--sidebar-bg:#091530;--card-bg:#0d1c3a;--topbar-bg:#091530;
-            --border:rgba(100,149,237,0.14);--text:#d8e8ff;--text-muted:rgba(140,180,255,0.55);
-            --primary:#4a80f5;--accent:#90b4ff;--table-hover:rgba(74,128,245,0.06);
+            --border:rgba(100,149,237,0.14);--text:#d8e8ff;--text-muted:rgba(180,210,255,0.70);
+            --primary:#4a80f5;--accent:#90b4ff;--table-hover:rgba(74,128,245,0.07);
             --btn-grad:linear-gradient(135deg,#4a80f5,#90b4ff);
             --nav-active-bg:rgba(74,128,245,0.14);--nav-active-color:#90b4ff;
         }
         [data-theme="deep-emerald"] {
             --bg:#061a0e;--sidebar-bg:#082015;--card-bg:#0b261a;--topbar-bg:#082015;
-            --border:rgba(0,200,100,0.14);--text:#d4f5e5;--text-muted:rgba(80,220,140,0.55);
-            --primary:#00c864;--accent:#4dffaa;--table-hover:rgba(0,200,100,0.06);
+            --border:rgba(0,200,100,0.14);--text:#d4f5e5;--text-muted:rgba(160,230,190,0.70);
+            --primary:#00c864;--accent:#4dffaa;--table-hover:rgba(0,200,100,0.07);
             --btn-grad:linear-gradient(135deg,#00c864,#4dffaa);
             --nav-active-bg:rgba(0,200,100,0.12);--nav-active-color:#4dffaa;
         }
         [data-theme="royal-purple"] {
             --bg:#0f0520;--sidebar-bg:#180832;--card-bg:#1e0a3c;--topbar-bg:#180832;
-            --border:rgba(160,80,255,0.16);--text:#ecdcff;--text-muted:rgba(180,120,255,0.55);
-            --primary:#9040ff;--accent:#d080ff;--table-hover:rgba(160,80,255,0.07);
+            --border:rgba(160,80,255,0.16);--text:#ecdcff;--text-muted:rgba(210,170,255,0.70);
+            --primary:#9040ff;--accent:#d080ff;--table-hover:rgba(160,80,255,0.08);
             --btn-grad:linear-gradient(135deg,#9040ff,#d080ff);
             --nav-active-bg:rgba(144,64,255,0.16);--nav-active-color:#d080ff;
         }
         [data-theme="charcoal"] {
             --bg:#111111;--sidebar-bg:#1a1a1a;--card-bg:#222222;--topbar-bg:#1a1a1a;
-            --border:rgba(255,255,255,0.09);--text:#e2e2e2;--text-muted:rgba(255,255,255,0.40);
-            --primary:#999;--accent:#bbb;--table-hover:rgba(255,255,255,0.04);
+            --border:rgba(255,255,255,0.09);--text:#e2e2e2;--text-muted:rgba(255,255,255,0.58);
+            --primary:#999;--accent:#bbb;--table-hover:rgba(255,255,255,0.05);
             --btn-grad:linear-gradient(135deg,#666,#aaa);
             --nav-active-bg:rgba(255,255,255,0.09);--nav-active-color:#fff;
         }
