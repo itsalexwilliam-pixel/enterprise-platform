@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Validator Pro - Enterprise Email Verification</title>
+    <title>Novelio Technologies LLC - Enterprise Email Verification</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,7 +11,8 @@
         body { background: #0a0a14; color: #e0e0e8; font-family: 'Segoe UI', sans-serif; }
         /* Navbar */
         .navbar { background: rgba(10,10,20,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
-        .brand-logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #00d4ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-logo img { height: 38px; width: auto; filter: brightness(1.1); }
+        .brand-logo-text { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-top: 2px; }
         .btn-outline-light { border-color: rgba(255,255,255,0.2); }
         /* Hero */
         .hero { min-height: 90vh; display: flex; align-items: center; background: radial-gradient(ellipse at 60% 50%, rgba(123,47,247,0.15) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(0,212,255,0.1) 0%, transparent 50%); padding: 5rem 0; }
@@ -56,7 +57,10 @@
 <nav class="navbar">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between w-100">
-            <span class="brand-logo"><i class="fas fa-envelope-circle-check me-2"></i>EmailValidator Pro</span>
+            <a href="{{ url('/') }}" class="brand-logo text-decoration-none d-inline-block">
+                <img src="{{ asset('images/novelio-logo.webp') }}" alt="Novelio Technologies LLC">
+                <span class="brand-logo-text">Email Validator Pro</span>
+            </a>
             <div class="d-flex gap-3 align-items-center">
                 @auth
                 <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-primary-gradient">Dashboard</a>
@@ -255,8 +259,11 @@
 <footer>
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <span class="brand-logo"><i class="fas fa-envelope-circle-check me-2"></i>EmailValidator Pro</span>
-            <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;">© {{ date('Y') }} Email Validator Pro. All rights reserved.</div>
+            <a href="{{ url('/') }}" class="brand-logo text-decoration-none d-inline-block">
+                <img src="{{ asset('images/novelio-logo.webp') }}" alt="Novelio Technologies LLC">
+                <span class="brand-logo-text">Email Validator Pro</span>
+            </a>
+            <div style="color:rgba(255,255,255,0.4);font-size:0.85rem;">© {{ date('Y') }} Novelio Technologies LLC. All rights reserved.</div>
             <div class="d-flex gap-3" style="font-size:0.85rem;">
                 <a href="#" style="color:rgba(255,255,255,0.4);" class="text-decoration-none">Privacy</a>
                 <a href="#" style="color:rgba(255,255,255,0.4);" class="text-decoration-none">Terms</a>
