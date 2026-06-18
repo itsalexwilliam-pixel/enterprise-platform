@@ -17,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.11",
         "laravel/horizon": "^5.28",
+        "laravel/tinker": "^3.0",
 
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1",
         "tymon/jwt-auth": "^2.1",
