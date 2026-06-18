@@ -28,9 +28,9 @@ use Illuminate\Support\Facades\Log;
 class SmtpValidator
 {
     private const SMTP_PORT         = 25;
-    private const CONNECT_TIMEOUT   = 8;    // seconds
-    private const READ_TIMEOUT      = 10;   // seconds
-    private const MAX_RETRIES       = 2;
+    private const CONNECT_TIMEOUT   = 4;    // seconds — short; EC2 blocks port 25 outbound by default
+    private const READ_TIMEOUT      = 6;    // seconds
+    private const MAX_RETRIES       = 1;    // single attempt — retrying doubles latency on blocked ports
 
     // Catch-all detection: test a random email on the domain
     private const CATCH_ALL_TEST_PREFIX = 'this-email-should-not-exist-xyz123abc';
