@@ -133,6 +133,7 @@ class EmailValidationController extends Controller
                 'spf_record'         => $result['spf_found'],
                 'dmarc_record'       => $result['dmarc_found'],
                 'mailbox_provider'   => $result['mailbox_provider'],
+                'did_you_mean'       => $result['did_you_mean'] ?? null,
                 'risk_level'         => \App\Services\Validation\ScoringEngine::getRiskLevel($result['score']),
                 'deliverability'     => \App\Services\Validation\ScoringEngine::getDeliverability($result['score']),
                 'from_cache'         => $result['from_cache'],

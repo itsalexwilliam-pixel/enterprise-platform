@@ -62,7 +62,7 @@
                                 <div class="col-6">
                                     <div class="p-2 rounded-2" style="background:rgba(0,0,0,0.2);">
                                         <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">SMTP</div>
-                                        <check-item :ok="result.smtp_check" label="SMTP Verified"></check-item>
+                                        <check-item :ok="result.smtp_check === true" :label="result.smtp_check === true ? 'SMTP Accepted' : (result.smtp_check === null ? 'SMTP Greylisted' : 'SMTP Unverified')"></check-item>
                                         <check-item :ok="!result.catch_all" label="Not Catch-All"></check-item>
                                     </div>
                                 </div>
@@ -79,8 +79,23 @@
                             </div>
 
                             <!-- Mailbox Provider -->
-                            <div v-if="result.mailbox_provider" class="mt-2 d-flex align-items-center gap-2" style="font-size:0.82rem;color:rgba(255,255,255,0.5);">
-                                <i class="fas fa-inbox"></i> Provider: <strong style="color:rgba(255,255,255,0.8);">@{{ result.mailbox_provider }}</strong>
+                            <div class="mt-2 d-flex flex-wrap align-items-center gap-3" style="font-size:0.82rem;color:rgba(255,255,255,0.5);">
+                                <span v-if="result.mailbox_provider">
+                                    <i class="fas fa-inbox me-1"></i> Provider: <strong style="color:rgba(255,255,255,0.8);">@{{ result.mailbox_provider }}</strong>
+                                </span>
+                                <span v-if="result.response_time_ms">
+                                    <i class="fas fa-clock me-1"></i> <strong style="color:rgba(255,255,255,0.6);">@{{ result.response_time_ms }}ms</strong>
+                                </span>
+                            </div>
+
+                            <!-- Did You Mean -->
+                            <div v-if="result.did_you_mean" class="mt-3 px-3 py-2 rounded-2 d-flex align-items-center gap-2"
+                                 style="background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);font-size:0.83rem;">
+                                <i class="fas fa-lightbulb" style="color:#ffd60a;"></i>
+                                <span style="color:rgba(255,255,255,0.7);">Did you mean</span>
+                                <a href="#" @click.prevent="email = result.did_you_mean; result = null"
+                                   style="color:#ffd60a;font-weight:600;text-decoration:none;">@{{ result.did_you_mean }}</a>
+                                <span style="color:rgba(255,255,255,0.4);">?</span>
                             </div>
                         </div>
                     </div>
@@ -124,7 +139,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid rgba(255,255,255,0.06);">
                         <span style="font-size:0.875rem;">40–59</span>
-                        <span class="badge" style="background:rgba(255,193,7,0.2);color:#ffd60a;border:1px solid rgba(255,193,7,0.3);">Risky</span>
+                        <span class="badge" style="background:rgba(255,193,7,0.2);color:#ffd60a;border:1px solid rgba(255,193,7,0.3);">Risky / Unverified</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span style="font-size:0.875rem;">0–39</span>
@@ -150,13 +165,25 @@ createApp({
 
         const statusLabel = computed(() => {
             if (!result.value) return '';
-            const s = result.value.status;
-            return s === 'valid' ? 'Valid Email' : s === 'invalid' ? 'Invalid Email' : s === 'risky' ? 'Risky Email' : 'Unknown';
+            const labels = {
+                valid:         'Valid Email',
+                invalid:       'Invalid Email',
+                risky:         'Risky Email',
+                catch_all:     'Catch-All Domain',
+                disposable:    'Disposable Email',
+                spam_trap:     'Spam Trap',
+                unverifiable:  'Unverifiable',
+                unknown:       'Needs Review',
+            };
+            return labels[result.value.status] ?? 'Needs Review';
         });
 
         const statusColor = computed(() => {
             const s = result.value?.status;
-            return s === 'valid' ? '#6feaaa' : s === 'invalid' ? '#ff8a9a' : s === 'risky' ? '#ffd60a' : '#adb5bd';
+            if (s === 'valid')      return '#6feaaa';
+            if (s === 'invalid' || s === 'spam_trap' || s === 'disposable') return '#ff8a9a';
+            if (s === 'risky' || s === 'catch_all') return '#ffd60a';
+            return '#adb5bd';
         });
 
         const scoreStyle = computed(() => {
@@ -168,9 +195,12 @@ createApp({
 
         const resultStyle = computed(() => {
             const s = result.value?.status;
-            const colors = { valid: 'rgba(25,135,84,0.08)', invalid: 'rgba(220,53,69,0.08)', risky: 'rgba(255,193,7,0.05)' };
-            const borders = { valid: 'rgba(25,135,84,0.25)', invalid: 'rgba(220,53,69,0.25)', risky: 'rgba(255,193,7,0.25)' };
-            return { background: colors[s] || 'rgba(255,255,255,0.04)', border: `1px solid ${borders[s] || 'rgba(255,255,255,0.1)'}` };
+            const dangerSet = new Set(['invalid', 'spam_trap', 'disposable']);
+            const warningSet = new Set(['risky', 'catch_all', 'unknown']);
+            if (s === 'valid')          return { background: 'rgba(25,135,84,0.08)',  border: '1px solid rgba(25,135,84,0.25)' };
+            if (dangerSet.has(s))       return { background: 'rgba(220,53,69,0.08)',  border: '1px solid rgba(220,53,69,0.25)' };
+            if (warningSet.has(s))      return { background: 'rgba(255,193,7,0.05)',  border: '1px solid rgba(255,193,7,0.25)' };
+            return { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' };
         });
 
         const badgeStyle = computed(() => {

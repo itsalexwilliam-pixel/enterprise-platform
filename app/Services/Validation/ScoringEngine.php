@@ -34,6 +34,7 @@ class ScoringEngine
     private const TRUSTED_PROVIDERS = [
         'gmail', 'outlook', 'yahoo', 'office365', 'icloud',
         'google_workspace', 'protonmail', 'fastmail', 'zoho', 'yandex', 'mailru',
+        'aol', 'gmx', 'tutanota',
     ];
 
     // Penalties
@@ -133,8 +134,14 @@ class ScoringEngine
                         $partial = (int) (self::WEIGHTS['smtp_valid'] * 0.6); // 21 pts
                         $score  += $partial;
                         $breakdown['smtp_trusted_no_connect'] = $partial;
+                    } elseif (($result['spf_found'] ?? false) && ($result['dmarc_found'] ?? false)) {
+                        // Unknown/corporate provider but strong DNS health (MX + SPF + DMARC).
+                        // The domain is properly configured — give small partial credit.
+                        $partial = (int) (self::WEIGHTS['smtp_valid'] * 0.3); // 10 pts
+                        $score  += $partial;
+                        $breakdown['smtp_dns_validated'] = $partial;
                     }
-                    // Unknown provider — no points, no penalty (cannot determine)
+                    // Weak DNS with unknown provider — no points, no penalty
                 }
 
             } else {

@@ -44,9 +44,11 @@ class EmailValidationService
     public const STATUS_UNVERIFIABLE  = 'unverifiable';
 
     // Major providers that block SMTP probing — valid MX = likely deliverable
+    // These providers actively block port 25 probing; MX alone is strong enough signal
     private const SMTP_PROOF_PROVIDERS = [
         'gmail', 'outlook', 'yahoo', 'office365', 'icloud',
         'google_workspace', 'protonmail', 'fastmail', 'zoho', 'yandex', 'mailru',
+        'aol', 'gmx', 'tutanota',
     ];
 
     // Common domain typos: [typo => correct]
@@ -320,15 +322,19 @@ class EmailValidationService
 
             if ($result['smtp_valid'] === false) {
                 if (! $result['smtp_connectable'] && $result['mx_found']) {
-                    // Could not connect at all (port 25 + 587 both blocked).
+                    // Could not connect at all (port 25 + 587 both blocked — typical on AWS EC2).
                     // For major known providers with valid MX, treat as risky
                     // (very likely deliverable — provider blocks all probing).
                     if ($isKnownProvider) {
-                        return $result['is_role_based']
-                            ? self::STATUS_RISKY
-                            : self::STATUS_RISKY;
+                        return self::STATUS_RISKY;
                     }
-                    // Unknown provider, no SMTP — cannot verify
+                    // Unknown/corporate provider — check DNS health as secondary signal.
+                    // If MX + SPF + DMARC all exist, the domain is properly configured for email.
+                    // Cannot verify the specific mailbox, but the domain is real → Risky.
+                    if ($result['spf_found'] && $result['dmarc_found']) {
+                        return self::STATUS_RISKY;
+                    }
+                    // Weak DNS — truly cannot determine
                     return self::STATUS_UNKNOWN;
                 }
 
@@ -352,7 +358,10 @@ class EmailValidationService
 
         // MX exists but no SMTP result at all
         if ($result['mx_found']) {
-            return $isKnownProvider ? self::STATUS_RISKY : self::STATUS_UNKNOWN;
+            if ($isKnownProvider) return self::STATUS_RISKY;
+            // Strong DNS signal even for unknown providers
+            if ($result['spf_found'] && $result['dmarc_found']) return self::STATUS_RISKY;
+            return self::STATUS_UNKNOWN;
         }
 
         return self::STATUS_INVALID;

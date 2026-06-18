@@ -28,9 +28,10 @@ use Illuminate\Support\Facades\Log;
 class SmtpValidator
 {
     private const SMTP_PORT         = 25;
-    private const CONNECT_TIMEOUT   = 4;    // seconds — short; EC2 blocks port 25 outbound by default
-    private const READ_TIMEOUT      = 6;    // seconds
+    private const CONNECT_TIMEOUT   = 3;    // seconds — very short; EC2 blocks port 25 outbound by default
+    private const READ_TIMEOUT      = 5;    // seconds
     private const MAX_RETRIES       = 1;    // single attempt — retrying doubles latency on blocked ports
+    private const MAX_MX_TO_TRY     = 2;    // only try top 2 MX records max — if port 25 is blocked network-wide, trying all records wastes time
 
     // Catch-all detection: test a random email on the domain
     private const CATCH_ALL_TEST_PREFIX = 'this-email-should-not-exist-xyz123abc';
@@ -68,8 +69,10 @@ class SmtpValidator
             return $result;
         }
 
-        // Try each MX record (by priority order)
-        foreach ($mxRecords as $mx) {
+        // Try top MX records (by priority order) — limit attempts to avoid timeout
+        $mxToTry = array_slice($mxRecords, 0, self::MAX_MX_TO_TRY);
+
+        foreach ($mxToTry as $mx) {
             $mxHost = $mx['host'];
             $mxIp   = gethostbyname($mxHost);
 
@@ -89,6 +92,12 @@ class SmtpValidator
                 if ($smtpResult['smtp_response_code'] !== null) {
                     break;
                 }
+            } else {
+                // Could not connect to this MX at all (port 25 + 587 both blocked).
+                // If outbound port 25 is blocked on our server (e.g. AWS EC2),
+                // every MX server for this domain will fail the same way.
+                // Stop trying further MX records to avoid cascading timeouts.
+                break;
             }
         }
 
