@@ -24,8 +24,8 @@
                         <div class="col-md-6">
                             <label class="form-label">Email Address</label>
                             <input type="email" class="form-control" value="{{ auth()->user()->email }}" disabled
-                                   style="color:rgba(255,255,255,0.4);">
-                            <div class="form-text" style="color:rgba(255,255,255,0.3);font-size:0.75rem;">Email cannot be changed.</div>
+                                   style="color:var(--text-muted);">
+                            <div class="form-text text-muted" style="font-size:0.75rem;">Email cannot be changed.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Company</label>
@@ -104,10 +104,10 @@
                 @php $plan = auth()->user()->currentPlan(); @endphp
                 @if($plan)
                 <div style="font-size:1.2rem;font-weight:700;margin-bottom:0.25rem;">{{ $plan->name }}</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);">{{ number_format($plan->monthly_credits) }} credits/month</div>
+                <div class="text-muted" style="font-size:0.85rem;">{{ number_format($plan->monthly_credits) }} credits/month</div>
                 @else
                 <div style="font-size:1.2rem;font-weight:700;margin-bottom:0.25rem;">Free Plan</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);">100 signup credits</div>
+                <div class="text-muted" style="font-size:0.85rem;">100 signup credits</div>
                 @endif
                 <a href="{{ route('user.billing') }}" class="btn btn-sm btn-outline-light w-100 mt-3" style="font-size:0.8rem;">
                     <i class="fas fa-arrow-up me-1"></i>Upgrade Plan
@@ -119,16 +119,16 @@
         <div class="card mb-4">
             <div class="card-header py-3 px-4"><span class="fw-semibold" style="font-size:0.875rem;">Account Info</span></div>
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.82rem;">
-                    <span style="color:rgba(255,255,255,0.4);">Member Since</span>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:0.82rem;">
+                    <span class="text-muted">Member Since</span>
                     <span>{{ auth()->user()->created_at->format('M Y') }}</span>
                 </div>
-                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.82rem;">
-                    <span style="color:rgba(255,255,255,0.4);">Role</span>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:0.82rem;">
+                    <span class="text-muted">Role</span>
                     <span class="text-capitalize">{{ auth()->user()->role }}</span>
                 </div>
-                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.82rem;">
-                    <span style="color:rgba(255,255,255,0.4);">Email Verified</span>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border);font-size:0.82rem;">
+                    <span class="text-muted">Email Verified</span>
                     @if(auth()->user()->email_verified_at)
                     <span style="color:#6feaaa;"><i class="fas fa-check me-1"></i>Yes</span>
                     @else
@@ -136,7 +136,7 @@
                     @endif
                 </div>
                 <div class="d-flex justify-content-between py-2" style="font-size:0.82rem;">
-                    <span style="color:rgba(255,255,255,0.4);">Last Login</span>
+                    <span class="text-muted">Last Login</span>
                     <span>{{ auth()->user()->last_login_at?->diffForHumans() ?? 'N/A' }}</span>
                 </div>
             </div>
@@ -148,7 +148,7 @@
                 <span class="fw-semibold" style="color:#ff8a9a;font-size:0.875rem;"><i class="fas fa-triangle-exclamation me-2"></i>Danger Zone</span>
             </div>
             <div class="card-body p-4">
-                <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);">Once you delete your account, all data will be permanently removed.</p>
+                <p class="text-muted" style="font-size:0.82rem;">Once you delete your account, all data will be permanently removed.</p>
                 <button class="btn btn-sm" style="background:rgba(220,53,69,0.15);border:1px solid rgba(220,53,69,0.3);color:#ff8a9a;"
                         onclick="if(confirm('Are you absolutely sure? This cannot be undone.')) document.getElementById('deleteForm').submit()">
                     <i class="fas fa-trash me-2"></i>Delete My Account

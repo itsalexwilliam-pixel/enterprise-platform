@@ -41,8 +41,8 @@
                     </button>
                 </form>
 
-                <div class="mt-4 p-3 rounded-2" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);">
-                    <h6 style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.75rem;">How to use your API key</h6>
+                <div class="mt-4 p-3 rounded-2" style="background:var(--table-hover);border:1px solid var(--border);">
+                    <h6 class="text-muted" style="font-size:0.8rem;font-weight:600;margin-bottom:0.75rem;">How to use your API key</h6>
                     <pre style="font-size:0.75rem;color:#00d4ff;margin:0;white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.3);padding:0.75rem;border-radius:6px;">curl -X POST {{ url('/api/v1/validate') }} \
   -H "X-API-Key: ev_your_key_here" \
   -H "Content-Type: application/json" \
@@ -57,17 +57,17 @@
         <div class="card">
             <div class="card-header py-3 px-4 d-flex align-items-center justify-content-between">
                 <span class="fw-semibold"><i class="fas fa-list me-2" style="color:#7b2ff7;"></i>Your API Keys</span>
-                <span style="font-size:0.8rem;color:rgba(255,255,255,0.4);">{{ $apiKeys->where('status','active')->count() }} active</span>
+                <span class="text-muted" style="font-size:0.8rem;">{{ $apiKeys->where('status','active')->count() }} active</span>
             </div>
             <div class="card-body p-0">
                 @if($apiKeys->isEmpty())
-                <div class="text-center py-5" style="color:rgba(255,255,255,0.3);">
-                    <i class="fas fa-key mb-2" style="font-size:2rem;display:block;"></i>
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-key mb-2" style="font-size:2rem;display:block;opacity:0.4;"></i>
                     No API keys yet. Create one to get started.
                 </div>
                 @else
                 @foreach($apiKeys as $key)
-                <div class="p-4" style="{{ !$loop->last ? 'border-bottom:1px solid rgba(255,255,255,0.06);' : '' }}">
+                <div class="p-4" style="{{ !$loop->last ? 'border-bottom:1px solid var(--border);' : '' }}">
                     <div class="d-flex align-items-start justify-content-between gap-3">
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-center gap-2 mb-1">
@@ -79,11 +79,11 @@
                                 @endif
                             </div>
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <code style="font-size:0.8rem;color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.2);padding:0.2rem 0.5rem;border-radius:4px;">
+                                <code style="font-size:0.8rem;color:var(--text-muted);background:rgba(0,0,0,0.2);padding:0.2rem 0.5rem;border-radius:4px;">
                                     {{ $key->key_prefix }}••••••••••••••••••••••••
                                 </code>
                             </div>
-                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.3);">
+                            <div class="text-muted" style="font-size:0.75rem;">
                                 Created {{ $key->created_at->diffForHumans() }}
                                 @if($key->last_used_at) · Last used {{ $key->last_used_at->diffForHumans() }} @endif
                             </div>
@@ -92,7 +92,7 @@
                         <div class="d-flex gap-2">
                             <!-- Edit Modal Trigger -->
                             <button class="btn btn-sm" onclick="openEdit({{ $key->id }}, '{{ addslashes($key->name) }}')"
-                                    style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:0.78rem;">
+                                    style="background:var(--table-hover);border:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;">
                                 <i class="fas fa-pen"></i>
                             </button>
                             <!-- Revoke -->
@@ -108,10 +108,10 @@
 
                     <!-- Rate Limits -->
                     <div class="d-flex gap-3 mt-2">
-                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.3);">
+                        <span class="text-muted" style="font-size:0.75rem;">
                             <i class="fas fa-gauge me-1"></i>{{ number_format($key->rate_limit_per_minute) }}/min
                         </span>
-                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.3);">
+                        <span class="text-muted" style="font-size:0.75rem;">
                             <i class="fas fa-calendar-day me-1"></i>{{ number_format($key->rate_limit_per_day) }}/day
                         </span>
                         @if($key->daily_count > 0)
@@ -131,18 +131,18 @@
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);">
+        <div class="modal-content">
             <form method="POST" id="editForm">
                 @csrf @method('PUT')
-                <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
-                    <h5 class="modal-title text-white">Rename API Key</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Rename API Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <label class="form-label">Key Name</label>
                     <input type="text" name="name" id="editName" class="form-control" required maxlength="100">
                 </div>
-                <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.08);">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-primary">Save</button>
                 </div>
