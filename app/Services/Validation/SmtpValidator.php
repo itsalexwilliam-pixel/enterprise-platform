@@ -112,10 +112,12 @@ class SmtpValidator
 
     /**
      * Attempt SMTP conversation with a single MX server
+     * Tries port 25 first, falls back to port 587 with STARTTLS.
      */
     private function attemptSmtpValidation(string $email, string $mxHost, string $mxIp): array
     {
         $conversation = [];
+        $usedPort     = self::SMTP_PORT;
         $result = [
             'connected'          => false,
             'smtp_valid'         => false,
@@ -132,23 +134,18 @@ class SmtpValidator
 
             try {
                 // ------------------------------------------------
-                // Connect to SMTP server
+                // Connect to SMTP server — port 25 first, then 587
                 // ------------------------------------------------
-                $socket = @fsockopen(
-                    $mxIp,
-                    self::SMTP_PORT,
-                    $errno,
-                    $errstr,
-                    self::CONNECT_TIMEOUT
-                );
+                $socket = @fsockopen($mxIp, 25, $errno, $errstr, self::CONNECT_TIMEOUT);
 
                 if (! $socket) {
-                    // Try alternate port 587 if 25 is blocked
+                    // Port 25 blocked (common on AWS EC2) — try 587
                     $socket = @fsockopen($mxIp, 587, $errno, $errstr, self::CONNECT_TIMEOUT);
                     if (! $socket) {
-                        Log::debug("Cannot connect to {$mxHost} ({$mxIp}): {$errstr}");
-                        break; // Connection refused, skip this MX
+                        Log::debug("Cannot connect to {$mxHost} ({$mxIp}) on port 25 or 587: {$errstr}");
+                        break;
                     }
+                    $usedPort = 587;
                 }
 
                 stream_set_timeout($socket, self::READ_TIMEOUT);
@@ -159,76 +156,100 @@ class SmtpValidator
                 $result['smtp_banner'] = $this->extractText($banner);
                 $conversation[]        = "< {$banner}";
 
-                if ($this->getResponseCode($banner) !== 220) {
-                    break; // Server not ready
+                $bannerCode = $this->getResponseCode($banner);
+                if ($bannerCode !== 220) {
+                    // 421 = server busy, treat as greylist
+                    if ($bannerCode === 421) {
+                        $result['greylisted']        = true;
+                        $result['smtp_valid']         = null;
+                        $result['smtp_response_code'] = 421;
+                    }
+                    break;
                 }
 
                 // ------------------------------------------------
                 // EHLO / HELO
                 // ------------------------------------------------
-                $response = $this->sendCommand($socket, "EHLO {$this->heloDomain}", $conversation);
-                if ($this->getResponseCode($response) !== 250) {
-                    // Fallback to HELO
-                    $response = $this->sendCommand($socket, "HELO {$this->heloDomain}", $conversation);
-                    if ($this->getResponseCode($response) !== 250) {
+                $ehloResp = $this->sendCommand($socket, "EHLO {$this->heloDomain}", $conversation);
+                $ehloCode = $this->getResponseCode($ehloResp);
+
+                if ($ehloCode !== 250) {
+                    $heloResp = $this->sendCommand($socket, "HELO {$this->heloDomain}", $conversation);
+                    if ($this->getResponseCode($heloResp) !== 250) {
                         break;
+                    }
+                    $ehloResp = $heloResp;
+                }
+
+                // ------------------------------------------------
+                // STARTTLS — upgrade if on port 587 and server supports it
+                // ------------------------------------------------
+                if ($usedPort === 587 && str_contains(strtolower($ehloResp), 'starttls')) {
+                    $tlsResp = $this->sendCommand($socket, 'STARTTLS', $conversation);
+                    if ($this->getResponseCode($tlsResp) === 220) {
+                        // Upgrade the plain socket to TLS
+                        if (@stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                            // Re-issue EHLO after TLS upgrade
+                            $this->sendCommand($socket, "EHLO {$this->heloDomain}", $conversation);
+                        }
                     }
                 }
 
                 // ------------------------------------------------
                 // MAIL FROM
                 // ------------------------------------------------
-                $response = $this->sendCommand(
+                $fromResp = $this->sendCommand(
                     $socket,
                     "MAIL FROM:<{$this->fromEmail}>",
                     $conversation
                 );
 
-                if ($this->getResponseCode($response) !== 250) {
-                    // Server rejected our from address
-                    break;
+                if ($this->getResponseCode($fromResp) !== 250) {
+                    break; // Server rejected our FROM address
                 }
 
                 // ------------------------------------------------
                 // RCPT TO  ← The key validation step
                 // ------------------------------------------------
-                $response = $this->sendCommand(
+                $rcptResp = $this->sendCommand(
                     $socket,
                     "RCPT TO:<{$email}>",
                     $conversation
                 );
 
-                $code = $this->getResponseCode($response);
+                $code = $this->getResponseCode($rcptResp);
                 $result['smtp_response_code'] = $code;
-                $result['smtp_response']      = $this->extractText($response);
+                $result['smtp_response']      = $this->extractText($rcptResp);
 
                 if ($code >= 200 && $code < 300) {
-                    // 2xx = Definitely valid
+                    // 2xx = Mailbox accepted
+                    $result['smtp_valid'] = true;
+
+                } elseif ($code === 452 || $code === 552) {
+                    // Mailbox full — the address EXISTS, just can't receive right now
                     $result['smtp_valid'] = true;
 
                 } elseif ($code >= 400 && $code < 500) {
-                    // 4xx = Temporary failure
-                    if ($code === 421 || $code === 450 || $code === 451) {
-                        // Greylist or temporary rejection - treat as unknown
-                        $result['greylisted'] = true;
-                        $result['smtp_valid'] = null; // unknown
-                    } else {
-                        $result['smtp_valid'] = false;
-                    }
+                    // 4xx = Temporary failure (greylist, rate limit, try later)
+                    // 421 = service unavailable, 450/451 = greylist, 452 = mailbox full
+                    $result['greylisted'] = true;
+                    $result['smtp_valid'] = null; // Cannot determine — treat as unknown
 
                 } elseif ($code >= 500 && $code < 600) {
-                    // 5xx = Permanent failure = invalid email
+                    // 5xx = Permanent failure
+                    // 550 = mailbox does not exist
+                    // 551 = user not local
+                    // 553 = mailbox name not allowed
+                    // 554 = transaction failed / policy rejection
                     $result['smtp_valid'] = false;
 
                 } else {
-                    $result['smtp_valid'] = null; // Unknown
+                    $result['smtp_valid'] = null; // No useful code
                 }
 
-                // ------------------------------------------------
                 // QUIT gracefully
-                // ------------------------------------------------
                 $this->sendCommand($socket, 'QUIT', $conversation);
-                break; // Got a response, no need to retry
+                break;
 
             } catch (\Exception $e) {
                 Log::warning("SMTP validation error for {$email}: " . $e->getMessage());
@@ -241,7 +262,7 @@ class SmtpValidator
         }
 
         // Log conversation to database
-        $this->logConversation($email, $mxHost, $mxIp, $conversation, $result);
+        $this->logConversation($email, $mxHost, $mxIp, $conversation, $result, $usedPort);
 
         return $result;
     }
@@ -362,14 +383,15 @@ class SmtpValidator
         string $mxHost,
         string $mxIp,
         array  $conversation,
-        array  $result
+        array  $result,
+        int    $port = self::SMTP_PORT
     ): void {
         try {
             SmtpLog::create([
                 'email'               => $email,
                 'mx_host'             => $mxHost,
                 'mx_ip'               => $mxIp,
-                'port'                => self::SMTP_PORT,
+                'port'                => $port,
                 'conversation'        => implode("\n", $conversation),
                 'connection_success'  => $result['connected'],
                 'rcpt_to_response'    => $result['smtp_response'],

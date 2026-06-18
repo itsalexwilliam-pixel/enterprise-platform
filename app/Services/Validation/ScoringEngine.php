@@ -30,6 +30,12 @@ class ScoringEngine
         'base'            => 25, // Everyone starts with 25
     ];
 
+    // Providers that block SMTP probing — valid MX means likely deliverable
+    private const TRUSTED_PROVIDERS = [
+        'gmail', 'outlook', 'yahoo', 'office365', 'icloud',
+        'google_workspace', 'protonmail', 'fastmail', 'zoho', 'yandex', 'mailru',
+    ];
+
     // Penalties
     private const PENALTIES = [
         'is_spam_trap'    => -100, // Hard zero
@@ -98,21 +104,51 @@ class ScoringEngine
         // --------------------------------------------------------
         // SMTP VALIDATION RESULT
         // --------------------------------------------------------
+        $provider        = $result['mailbox_provider'] ?? 'other';
+        $isTrustedProvider = in_array($provider, self::TRUSTED_PROVIDERS, true);
+
         if (isset($result['smtp_valid'])) {
             if ($result['smtp_valid'] === true) {
+                // Confirmed valid by SMTP RCPT TO
                 $score += self::WEIGHTS['smtp_valid'];
                 $breakdown['smtp_valid'] = self::WEIGHTS['smtp_valid'];
+
             } elseif ($result['smtp_valid'] === false) {
                 if ($result['smtp_connectable'] ?? false) {
-                    // We connected but RCPT TO was rejected — confirmed invalid
-                    $score = max(0, $score - 60);
-                    $breakdown['smtp_invalid'] = -60;
+                    // Connected but RCPT TO rejected
+                    if ($isTrustedProvider || ($result['is_free_email'] ?? false)) {
+                        // Major providers actively block probing — soft penalty only
+                        $score = max(0, $score - 10);
+                        $breakdown['smtp_probe_blocked'] = -10;
+                    } else {
+                        // Small/corporate server confirmed rejection — hard penalty
+                        $score = max(0, $score - 60);
+                        $breakdown['smtp_invalid'] = -60;
+                    }
+                } else {
+                    // Could not connect (port 25 + 587 blocked — typical AWS EC2).
+                    // For trusted providers with valid MX, award partial SMTP score
+                    // since the provider is known to be real and block probing.
+                    if ($isTrustedProvider) {
+                        $partial = (int) (self::WEIGHTS['smtp_valid'] * 0.6); // 21 pts
+                        $score  += $partial;
+                        $breakdown['smtp_trusted_no_connect'] = $partial;
+                    }
+                    // Unknown provider — no points, no penalty (cannot determine)
                 }
-                // smtp_connectable === false means port 25 was unreachable
-                // (e.g. AWS EC2 blocks outbound port 25). No penalty — treat
-                // the same as null/unknown: no points added or subtracted.
+
+            } else {
+                // smtp_valid === null — greylisted / temporary failure
+                // Give partial credit — address likely exists
+                $partial = (int) (self::WEIGHTS['smtp_valid'] * 0.4); // 14 pts
+                $score  += $partial;
+                $breakdown['smtp_greylisted'] = $partial;
             }
-            // null = unknown, no points added or subtracted
+        } elseif ($isTrustedProvider && ($result['mx_found'] ?? false)) {
+            // No SMTP attempt made but trusted provider with MX — partial credit
+            $partial = (int) (self::WEIGHTS['smtp_valid'] * 0.5); // 17 pts
+            $score  += $partial;
+            $breakdown['smtp_trusted_skipped'] = $partial;
         }
 
         // --------------------------------------------------------

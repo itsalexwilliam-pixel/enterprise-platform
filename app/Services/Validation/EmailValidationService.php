@@ -43,6 +43,60 @@ class EmailValidationService
     public const STATUS_SPAM_TRAP     = 'spam_trap';
     public const STATUS_UNVERIFIABLE  = 'unverifiable';
 
+    // Major providers that block SMTP probing — valid MX = likely deliverable
+    private const SMTP_PROOF_PROVIDERS = [
+        'gmail', 'outlook', 'yahoo', 'office365', 'icloud',
+        'google_workspace', 'protonmail', 'fastmail', 'zoho', 'yandex', 'mailru',
+    ];
+
+    // Common domain typos: [typo => correct]
+    private const DOMAIN_TYPOS = [
+        // Gmail
+        'gmial.com'     => 'gmail.com',
+        'gmal.com'      => 'gmail.com',
+        'gmali.com'     => 'gmail.com',
+        'gamil.com'     => 'gmail.com',
+        'gmaill.com'    => 'gmail.com',
+        'gmail.co'      => 'gmail.com',
+        'gmail.cm'      => 'gmail.com',
+        'gmail.om'      => 'gmail.com',
+        'gnail.com'     => 'gmail.com',
+        'gmailcom'      => 'gmail.com',
+        'gmail.con'     => 'gmail.com',
+        // Yahoo
+        'yahooo.com'    => 'yahoo.com',
+        'yhaoo.com'     => 'yahoo.com',
+        'yahoo.co'      => 'yahoo.com',
+        'yaho.com'      => 'yahoo.com',
+        'yahoo.con'     => 'yahoo.com',
+        'yaaho.com'     => 'yahoo.com',
+        // Hotmail
+        'hotmai.com'    => 'hotmail.com',
+        'hotmial.com'   => 'hotmail.com',
+        'hotmail.co'    => 'hotmail.com',
+        'hotmal.com'    => 'hotmail.com',
+        'hotmail.con'   => 'hotmail.com',
+        'homail.com'    => 'hotmail.com',
+        // Outlook
+        'outlok.com'    => 'outlook.com',
+        'outook.com'    => 'outlook.com',
+        'outlook.co'    => 'outlook.com',
+        'outllok.com'   => 'outlook.com',
+        'outlook.con'   => 'outlook.com',
+        // iCloud
+        'iclod.com'     => 'icloud.com',
+        'icloud.co'     => 'icloud.com',
+        // AOL
+        'aol.co'        => 'aol.com',
+        'aoll.com'      => 'aol.com',
+        // Live
+        'live.co'       => 'live.com',
+        'live.con'      => 'live.com',
+        // ProtonMail
+        'protonmal.com' => 'protonmail.com',
+        'protonmai.com' => 'protonmail.com',
+    ];
+
     public function __construct(
         private readonly SyntaxValidator    $syntaxValidator,
         private readonly DnsValidator       $dnsValidator,
@@ -100,6 +154,11 @@ class EmailValidationService
         [$localPart, $domain] = explode('@', $email, 2);
         $result['local_part'] = $localPart;
         $result['domain']     = $domain;
+
+        // --------------------------------------------------------
+        // STEP 3a: Typo Detection — suggest correct domain
+        // --------------------------------------------------------
+        $result['did_you_mean'] = $this->detectTypo($localPart, $domain);
 
         // --------------------------------------------------------
         // STEP 3: Disposable Email Detection (fast DB lookup)
@@ -223,6 +282,7 @@ class EmailValidationService
             'is_recently_active'=> false,
             'mailbox_provider'  => null,
             'provider_type'     => null,
+            'did_you_mean'      => null,
             'score_breakdown'   => [],
             'from_cache'        => false,
             'validation_time_ms'=> 0,
@@ -235,45 +295,99 @@ class EmailValidationService
     private function determineFinalStatus(array $result): string
     {
         // Hard failures
-        if (! $result['syntax_valid'])      return self::STATUS_INVALID;
-        if ($result['is_spam_trap'])        return self::STATUS_SPAM_TRAP;
-        if ($result['is_disposable'])       return self::STATUS_DISPOSABLE;
+        if (! $result['syntax_valid'])                             return self::STATUS_INVALID;
+        if ($result['is_spam_trap'])                               return self::STATUS_SPAM_TRAP;
+        if ($result['is_disposable'])                              return self::STATUS_DISPOSABLE;
         if (! $result['mx_found'] && ! $result['a_record_found']) return self::STATUS_INVALID;
+
+        $provider       = $result['mailbox_provider'] ?? 'other';
+        $isKnownProvider = in_array($provider, self::SMTP_PROOF_PROVIDERS, true);
 
         // SMTP-based decisions
         if (isset($result['smtp_valid'])) {
-            if ($result['smtp_valid'] === true)  {
+
+            if ($result['smtp_valid'] === true) {
+                // Confirmed accepted by SMTP
                 if ($result['is_catch_all']) return self::STATUS_CATCH_ALL;
+                if ($result['is_role_based']) return self::STATUS_RISKY;
                 return self::STATUS_VALID;
             }
+
+            if ($result['smtp_valid'] === null) {
+                // Greylisted / temporary failure — cannot determine
+                return self::STATUS_RISKY;
+            }
+
             if ($result['smtp_valid'] === false) {
-                // If we could not connect at all (port 25 blocked, firewall, timeout)
-                // but DNS is healthy, we cannot call the email invalid — we simply
-                // could not verify it. AWS EC2 blocks port 25 outbound by default.
                 if (! $result['smtp_connectable'] && $result['mx_found']) {
+                    // Could not connect at all (port 25 + 587 both blocked).
+                    // For major known providers with valid MX, treat as risky
+                    // (very likely deliverable — provider blocks all probing).
+                    if ($isKnownProvider) {
+                        return $result['is_role_based']
+                            ? self::STATUS_RISKY
+                            : self::STATUS_RISKY;
+                    }
+                    // Unknown provider, no SMTP — cannot verify
                     return self::STATUS_UNKNOWN;
                 }
-                // Connected but RCPT TO was rejected. For major free-email providers
-                // (Gmail, Yahoo, Outlook) that block SMTP probing to prevent harvesting,
-                // treat as risky rather than definitively invalid.
-                if ($result['smtp_connectable'] && $result['is_free_email']) {
-                    return self::STATUS_RISKY;
+
+                // Connected but RCPT TO rejected
+                if ($result['smtp_connectable']) {
+                    // Major providers often return 5xx to prevent harvesting
+                    // even for valid addresses (Gmail, Yahoo) — treat as risky
+                    if ($isKnownProvider || $result['is_free_email']) {
+                        return self::STATUS_RISKY;
+                    }
+                    // Small/corporate server explicitly rejected the mailbox
+                    return self::STATUS_INVALID;
                 }
-                return self::STATUS_INVALID;
             }
         }
 
-        // Risky conditions
+        // Risky conditions (no SMTP result)
         if ($result['is_role_based'] || $result['is_catch_all'] || $result['greylisted']) {
             return self::STATUS_RISKY;
         }
 
-        // No SMTP result available
+        // MX exists but no SMTP result at all
         if ($result['mx_found']) {
-            return self::STATUS_UNKNOWN;
+            return $isKnownProvider ? self::STATUS_RISKY : self::STATUS_UNKNOWN;
         }
 
         return self::STATUS_INVALID;
+    }
+
+    /**
+     * Detect common domain typos and suggest correct email
+     * Returns corrected email string or null if no typo found
+     */
+    private function detectTypo(string $localPart, string $domain): ?string
+    {
+        $domain = strtolower($domain);
+
+        // Check exact typo map first (fastest)
+        if (isset(self::DOMAIN_TYPOS[$domain])) {
+            return $localPart . '@' . self::DOMAIN_TYPOS[$domain];
+        }
+
+        // Levenshtein-based fuzzy check against popular domains
+        $popularDomains = [
+            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
+            'icloud.com', 'aol.com', 'live.com', 'protonmail.com',
+        ];
+
+        foreach ($popularDomains as $popular) {
+            // Only suggest if within edit distance of 2 and domain is similar length
+            if (abs(strlen($domain) - strlen($popular)) <= 2) {
+                $distance = levenshtein($domain, $popular);
+                if ($distance > 0 && $distance <= 2) {
+                    return $localPart . '@' . $popular;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

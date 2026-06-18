@@ -154,6 +154,11 @@ class DnsValidator
 
     /**
      * Get sorted MX records
+     *
+     * NOTE: dns_get_record(DNS_MX) returns:
+     *   'host'   = the queried domain  (e.g. "gmail.com")
+     *   'target' = the MX mail server  (e.g. "aspmx.l.google.com")
+     * We must use 'target', not 'host', as the server to connect to.
      */
     private function getMxRecords(string $domain): array
     {
@@ -165,13 +170,13 @@ class DnsValidator
             }
 
             // Sort by priority (lowest = highest priority)
-            usort($records, fn ($a, $b) => $a['pri'] <=> $b['pri']);
+            usort($records, fn ($a, $b) => ($a['pri'] ?? 0) <=> ($b['pri'] ?? 0));
 
-            // Limit and format
+            // Limit and format — use 'target' for the MX hostname
             return array_slice(array_map(fn ($r) => [
-                'host'     => strtolower($r['host']),
-                'pri'      => (int) $r['pri'],
-                'ttl'      => $r['ttl'] ?? 3600,
+                'host' => strtolower($r['target'] ?? $r['host']),
+                'pri'  => (int) ($r['pri'] ?? 0),
+                'ttl'  => $r['ttl'] ?? 3600,
             ], $records), 0, self::MAX_MX_RECORDS);
 
         } catch (\Exception $e) {
