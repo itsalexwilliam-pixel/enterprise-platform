@@ -34,7 +34,9 @@ class ProcessBulkValidation implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout  = 7200; // 2 hours max
-    public int $tries    = 1;    // Don't retry bulk jobs (too expensive)
+    public int $tries    = 2;    // Allow 1 automatic retry if worker is killed mid-job.
+                                 // On retry, insertOrIgnore skips already-saved emails,
+                                 // so no duplicates appear in the results table.
     public int $maxExceptions = 1;
 
     private const CHUNK_SIZE   = 500;  // emails per DB batch
