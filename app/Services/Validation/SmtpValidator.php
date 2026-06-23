@@ -396,12 +396,21 @@ class SmtpValidator
         int    $port = self::SMTP_PORT
     ): void {
         try {
+            // After STARTTLS the socket data is binary (encrypted).
+            // MySQL utf8/utf8mb4 cannot store arbitrary binary, so we strip
+            // any non-printable / non-ASCII bytes before persisting.
+            $rawConversation = implode("\n", $conversation);
+            // Keep only printable ASCII + tab + LF + CR; replace anything else with '?'
+            $safeConversation = preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '?', $rawConversation);
+            // Also cap at 10 000 chars so very long SMTP sessions don't overflow TEXT columns
+            $safeConversation = mb_substr($safeConversation, 0, 10000);
+
             SmtpLog::create([
                 'email'               => $email,
                 'mx_host'             => $mxHost,
                 'mx_ip'               => $mxIp,
                 'port'                => $port,
-                'conversation'        => implode("\n", $conversation),
+                'conversation'        => $safeConversation,
                 'connection_success'  => $result['connected'],
                 'rcpt_to_response'    => $result['smtp_response'],
                 'rcpt_to_code'        => $result['smtp_response_code'],

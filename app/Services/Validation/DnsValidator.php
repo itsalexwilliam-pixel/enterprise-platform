@@ -226,15 +226,20 @@ class DnsValidator
     private function updateDomainCache(string $domain, array $result): void
     {
         try {
+            // Truncate SPF / DMARC records to 500 chars so they fit the DB column
+            // (some domains like usgs.gov have very long SPF includes that exceed VARCHAR(255))
+            $safeSPF   = $result['spf_record']   ? mb_substr($result['spf_record'],   0, 500) : null;
+            $safeDMARC = $result['dmarc_record']  ? mb_substr($result['dmarc_record'], 0, 500) : null;
+
             DomainModel::updateOrCreate(
                 ['domain' => $domain],
                 [
                     'mx_found'        => $result['mx_found'],
                     'a_record_found'  => $result['a_record_found'],
                     'spf_found'       => $result['spf_found'],
-                    'spf_record'      => $result['spf_record'],
+                    'spf_record'      => $safeSPF,
                     'dmarc_found'     => $result['dmarc_found'],
-                    'dmarc_record'    => $result['dmarc_record'],
+                    'dmarc_record'    => $safeDMARC,
                     'mx_records'      => $result['mx_records'],
                     'last_checked_at' => now(),
                     'cache_expires_at'=> now()->addHour(),
