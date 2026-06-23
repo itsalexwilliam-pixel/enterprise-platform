@@ -411,13 +411,14 @@
             setEl('liveUnknown', fmt(d.unknown_emails));
 
             // ── Currently-processing ticker ─────────────────────────
+            // d.current_email = email being SMTP-checked right now (from cache).
+            // Falls back to the most-recently-completed email if cache is empty.
             const tickerWrap = document.getElementById('processingTickerWrap');
             if (d.status === 'processing') {
                 if (tickerWrap) tickerWrap.style.display = '';
-                if (d.latest_results && d.latest_results.length > 0) {
-                    // latest_results is newest-first, so [0] = most recently finished
-                    setEl('currentlyProcessing', d.latest_results[0].email);
-                }
+                const tickerEmail = d.current_email
+                    || (d.latest_results && d.latest_results.length > 0 ? d.latest_results[0].email : null);
+                if (tickerEmail) setEl('currentlyProcessing', tickerEmail);
             } else {
                 if (tickerWrap) tickerWrap.style.display = 'none';
             }

@@ -120,6 +120,10 @@ class BulkController extends Controller
                 ->toArray();
         }
 
+        // The queue worker writes the email it is currently checking to cache
+        // (key set just before each SMTP call, cleared when job finishes).
+        $currentEmail = \Illuminate\Support\Facades\Cache::get("job:{$job->uuid}:current_email");
+
         return response()->json([
             'status'            => $job->status,
             'progress'          => $job->progress_percentage,
@@ -132,6 +136,7 @@ class BulkController extends Controller
             'processing_speed'  => $job->processing_speed,
             'eta_seconds'       => $job->estimated_seconds,
             'download_token'    => $job->download_token,
+            'current_email'     => $currentEmail,   // email being SMTP-checked right now
             'latest_results'    => $latestResults,
         ]);
     }

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -63,6 +64,10 @@ class ProcessBulkValidation implements ShouldQueue
 
         try {
             $this->processFile($job, $validationService);
+
+            // Clear the "currently checking" ticker
+            Cache::forget("job:{$job->uuid}:current_email");
+
             $job->markCompleted();
 
             // Build final summary
@@ -78,6 +83,7 @@ class ProcessBulkValidation implements ShouldQueue
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            Cache::forget("job:{$job->uuid}:current_email");
             $job->markFailed($e->getMessage());
 
             // Refund unprocessed credits
@@ -120,10 +126,25 @@ class ProcessBulkValidation implements ShouldQueue
         $seenEmails   = []; // for dedup
         $skipDupes     = $settings['skip_duplicates'] ?? true;
 
-        // Dynamic flush size: small jobs show results in real-time,
-        // large jobs keep batch performance.
-        // 10 emails → flush every 1 | 100 emails → every 10 | 1M emails → every 500
-        $flushEvery = max(1, min(self::CHUNK_SIZE, (int) ($job->total_emails / 10)));
+        // Flush interval — controls how often results are written to DB and
+        // the progress bar / live ticker update on the front-end.
+        //
+        // With port 25 blocked on AWS each email can take ~6 s (connect timeout
+        // on port 25 + port 587).  We therefore flush after every email for small
+        // lists so the user sees live updates from the very first result.
+        //
+        //  ≤  500 emails → every 1  email   (real-time ticker)
+        //  ≤ 2 000 emails → every 5  emails  (near real-time)
+        //  ≤10 000 emails → every 20 emails
+        //  ≤50 000 emails → every 100 emails
+        //  >50 000 emails → every min(CHUNK_SIZE, total/200)
+        $flushEvery = match(true) {
+            $job->total_emails <=    500 => 1,
+            $job->total_emails <=  2_000 => 5,
+            $job->total_emails <= 10_000 => 20,
+            $job->total_emails <= 50_000 => 100,
+            default => min(self::CHUNK_SIZE, max(50, (int)($job->total_emails / 200))),
+        };
 
         foreach ($emailIterator as $email) {
             // Check for cancellation every 100 emails
@@ -140,6 +161,9 @@ class ProcessBulkValidation implements ShouldQueue
                 if (isset($seenEmails[$email])) continue;
                 $seenEmails[$email] = true;
             }
+
+            // Broadcast which email is being checked right now (read by progress endpoint)
+            Cache::put("job:{$job->uuid}:current_email", $email, now()->addMinutes(10));
 
             // Validate the email
             try {
