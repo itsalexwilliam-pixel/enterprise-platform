@@ -120,6 +120,11 @@ class ProcessBulkValidation implements ShouldQueue
         $seenEmails   = []; // for dedup
         $skipDupes     = $settings['skip_duplicates'] ?? true;
 
+        // Dynamic flush size: small jobs show results in real-time,
+        // large jobs keep batch performance.
+        // 10 emails → flush every 1 | 100 emails → every 10 | 1M emails → every 500
+        $flushEvery = max(1, min(self::CHUNK_SIZE, (int) ($job->total_emails / 10)));
+
         foreach ($emailIterator as $email) {
             // Check for cancellation every 100 emails
             if ($processed % 100 === 0) {
@@ -169,8 +174,9 @@ class ProcessBulkValidation implements ShouldQueue
 
             $processed++;
 
-            // Bulk insert every CHUNK_SIZE emails
-            if (count($buffer) >= self::CHUNK_SIZE) {
+            // Flush buffer and update progress (dynamic size: real-time for small jobs,
+            // batch performance for large jobs)
+            if (count($buffer) >= $flushEvery) {
                 $this->bulkInsertResults($buffer);
                 $buffer = [];
 
