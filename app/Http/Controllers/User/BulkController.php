@@ -51,7 +51,8 @@ class BulkController extends Controller
 
         Storage::disk('local')->putFileAs(dirname($path), $file, basename($path));
 
-        $totalEmails = $this->countEmails(Storage::disk('local')->path($path), $ext);
+        $emailColumn = $request->input('email_column', 'email');
+        $totalEmails = $this->countEmails(Storage::disk('local')->path($path), $ext, $emailColumn);
 
         if ($totalEmails === 0) {
             Storage::disk('local')->delete($path);
@@ -187,25 +188,62 @@ class BulkController extends Controller
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private function countEmails(string $path, string $ext): int
+    private function countEmails(string $path, string $ext, string $emailColumn = 'email'): int
     {
-        $count  = 0;
+        $count = 0;
+
+        if ($ext === 'xlsx') {
+            try {
+                $reader      = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                $reader->setReadDataOnly(true);
+                $spreadsheet = $reader->load($path);
+                $sheet       = $spreadsheet->getActiveSheet();
+                $headers     = null;
+                $emailIdx    = 0;
+
+                foreach ($sheet->getRowIterator() as $row) {
+                    $cells = [];
+                    foreach ($row->getCellIterator() as $cell) {
+                        $cells[] = $cell->getValue();
+                    }
+                    if ($headers === null) {
+                        $headers  = array_map('strtolower', array_map('trim', $cells));
+                        $idx      = array_search(strtolower($emailColumn), $headers);
+                        $emailIdx = $idx !== false ? $idx : 0;
+                        continue;
+                    }
+                    $email = strtolower(trim($cells[$emailIdx] ?? ''));
+                    if (filter_var($email, FILTER_VALIDATE_EMAIL)) $count++;
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to count XLSX emails: " . $e->getMessage());
+            }
+            return $count;
+        }
+
         $handle = fopen($path, 'r');
         if (! $handle) return 0;
 
         if ($ext === 'csv') {
-            $headers = null;
+            $headers  = null;
+            $emailIdx = 0;
             while (($row = fgetcsv($handle, 1000)) !== false) {
-                if (! $headers) { $headers = $row; continue; }
-                $email = trim($row[0] ?? '');
+                if ($headers === null) {
+                    $headers  = array_map('strtolower', array_map('trim', $row));
+                    $idx      = array_search(strtolower($emailColumn), $headers);
+                    $emailIdx = $idx !== false ? $idx : 0;
+                    continue;
+                }
+                $email = trim($row[$emailIdx] ?? '');
                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) $count++;
             }
         } else {
-            // txt or plain text — one email per line
+            // txt — one email per line
             while (($line = fgets($handle)) !== false) {
                 if (filter_var(trim($line), FILTER_VALIDATE_EMAIL)) $count++;
             }
         }
+
         fclose($handle);
         return $count;
     }

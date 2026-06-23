@@ -322,11 +322,12 @@ class EmailValidationService
 
             if ($result['smtp_valid'] === false) {
                 if (! $result['smtp_connectable'] && $result['mx_found']) {
-                    // Could not connect at all (port 25 + 587 both blocked — typical on AWS EC2).
-                    // For major known providers with valid MX, treat as risky
-                    // (very likely deliverable — provider blocks all probing).
+                    // Could not connect at all (port 25 + 587 both blocked — typical on AWS EC2 / local dev).
+                    // For major known providers with valid MX, the email format is correct and the
+                    // provider is real — cannot verify the specific mailbox, but treat as valid.
                     if ($isKnownProvider) {
-                        return self::STATUS_RISKY;
+                        if ($result['is_role_based']) return self::STATUS_RISKY;
+                        return self::STATUS_VALID;
                     }
                     // Unknown/corporate provider — check DNS health as secondary signal.
                     // If MX + SPF + DMARC all exist, the domain is properly configured for email.
@@ -356,9 +357,13 @@ class EmailValidationService
             return self::STATUS_RISKY;
         }
 
-        // MX exists but no SMTP result at all
+        // MX exists but no SMTP result at all (SMTP disabled or skipped)
         if ($result['mx_found']) {
-            if ($isKnownProvider) return self::STATUS_RISKY;
+            if ($isKnownProvider) {
+                // Known provider with valid MX — likely valid even without SMTP check
+                if ($result['is_role_based']) return self::STATUS_RISKY;
+                return self::STATUS_VALID;
+            }
             // Strong DNS signal even for unknown providers
             if ($result['spf_found'] && $result['dmarc_found']) return self::STATUS_RISKY;
             return self::STATUS_UNKNOWN;

@@ -225,7 +225,7 @@ class ProcessBulkValidation implements ShouldQueue
             'dmarc_found'        => $r['dmarc_found'] ? 1 : 0,
             'dmarc_record'       => $r['dmarc_record'],
             'smtp_connectable'   => $r['smtp_connectable'] ? 1 : 0,
-            'smtp_valid'         => isset($r['smtp_valid']) ? ($r['smtp_valid'] ? 1 : 0) : null,
+            'smtp_valid'         => ($r['smtp_valid'] === null) ? null : ($r['smtp_valid'] ? 1 : 0),
             'smtp_banner'        => $r['smtp_banner'],
             'smtp_response'      => $r['smtp_response'],
             'smtp_response_code' => $r['smtp_response_code'],
