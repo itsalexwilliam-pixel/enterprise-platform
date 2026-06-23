@@ -81,7 +81,7 @@ class BulkController extends Controller
         $user->deductCredits($totalEmails, "Bulk job: {$job->name}", $job->id);
         $job->update(['credits_used' => $totalEmails]);
 
-        ProcessBulkValidation::dispatch($job->id)->onQueue('bulk_processing');
+        ProcessBulkValidation::dispatch($job->id)->onQueue('bulk');
 
         return redirect()->route('user.bulk.show', $job)
             ->with('success', 'File uploaded! Validation started.');

@@ -15,7 +15,7 @@
                         $statusColors = ['pending' => '#adb5bd','processing' => '#00d4ff','completed' => '#6feaaa','failed' => '#ff8a9a','cancelled' => '#adb5bd'];
                         $color = $statusColors[$job->status] ?? '#adb5bd';
                     @endphp
-                    <span class="badge" style="background:rgba(255,255,255,0.08);color:{{ $color }};border:1px solid {{ $color }}40;">
+                    <span id="statusBadge" class="badge" style="background:rgba(255,255,255,0.08);color:{{ $color }};border:1px solid {{ $color }}40;">
                         {{ ucfirst($job->status) }}
                     </span>
                 </div>
@@ -25,17 +25,17 @@
                     <div style="position:relative;display:inline-block;">
                         <svg width="120" height="120" viewBox="0 0 120 120">
                             <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
-                            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad)" stroke-width="8"
+                            <circle id="progressRing" cx="60" cy="60" r="50" fill="none" stroke="url(#grad)" stroke-width="8"
                                     stroke-linecap="round" stroke-dasharray="314"
                                     stroke-dashoffset="{{ 314 - (314 * $job->progress_percentage / 100) }}"
-                                    transform="rotate(-90 60 60)"/>
+                                    transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 0.5s ease;"/>
                             <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" style="stop-color:#7b2ff7"/>
                                 <stop offset="100%" style="stop-color:#00d4ff"/>
                             </linearGradient></defs>
                         </svg>
                         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
-                            <div style="font-size:1.5rem;font-weight:800;">{{ $job->progress_percentage }}%</div>
+                            <div id="progressPct" style="font-size:1.5rem;font-weight:800;">{{ $job->progress_percentage }}%</div>
                             <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);">Complete</div>
                         </div>
                     </div>
@@ -43,25 +43,21 @@
 
                 <div class="row g-2 text-center mb-3">
                     <div class="col-6">
-                        <div style="font-size:1.2rem;font-weight:700;">{{ number_format($job->processed_emails) }}</div>
+                        <div id="processedCount" style="font-size:1.2rem;font-weight:700;">{{ number_format($job->processed_emails) }}</div>
                         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">Processed</div>
                     </div>
                     <div class="col-6">
-                        <div style="font-size:1.2rem;font-weight:700;">{{ number_format($job->total_emails) }}</div>
+                        <div id="totalCount" style="font-size:1.2rem;font-weight:700;">{{ number_format($job->total_emails) }}</div>
                         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">Total</div>
                     </div>
-                    @if($job->processing_speed)
-                    <div class="col-6">
-                        <div style="font-size:1.2rem;font-weight:700;">{{ number_format($job->processing_speed) }}/s</div>
+                    <div class="col-6" id="speedWrap" style="{{ $job->processing_speed ? '' : 'display:none;' }}">
+                        <div id="processingSpeed" style="font-size:1.2rem;font-weight:700;">{{ number_format($job->processing_speed ?? 0) }}/s</div>
                         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">Speed</div>
                     </div>
-                    @endif
-                    @if($job->eta_seconds && $job->status === 'processing')
-                    <div class="col-6">
-                        <div style="font-size:1.2rem;font-weight:700;">{{ gmdate('H:i:s', $job->eta_seconds) }}</div>
+                    <div class="col-6" id="etaWrap" style="{{ ($job->eta_seconds && $job->status === 'processing') ? '' : 'display:none;' }}">
+                        <div id="etaSeconds" style="font-size:1.2rem;font-weight:700;">{{ $job->eta_seconds ? gmdate('H:i:s', $job->eta_seconds) : '—' }}</div>
                         <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">ETA</div>
                     </div>
-                    @endif
                 </div>
 
                 @if($job->status === 'completed' && $job->download_token)
@@ -191,9 +187,98 @@
 @endsection
 
 @push('scripts')
-@if(in_array($job->status, ['pending', 'processing']))
 <script>
-setTimeout(() => location.reload(), 4000);
+(function () {
+    const PROGRESS_URL  = '{{ route('user.bulk.progress', $job) }}';
+    const INITIAL_STATUS = '{{ $job->status }}';
+    const DOWNLOAD_URL   = '{{ $job->status === 'completed' && $job->download_token ? route('user.bulk.download', $job) : '' }}';
+
+    const STATUS_COLORS = {
+        pending    : '#adb5bd',
+        processing : '#00d4ff',
+        completed  : '#6feaaa',
+        failed     : '#ff8a9a',
+        cancelled  : '#adb5bd',
+    };
+
+    function fmt(n) { return Number(n).toLocaleString(); }
+    function fmtTime(s) {
+        if (!s) return '—';
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+        return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
+    }
+
+    function setEl(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function poll() {
+        fetch(PROGRESS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(d => {
+                // ── Progress ring ──────────────────────────────
+                const pct    = d.progress || 0;
+                const offset = 314 - (314 * pct / 100);
+                const ring = document.getElementById('progressRing');
+                if (ring) ring.setAttribute('stroke-dashoffset', offset);
+                setEl('progressPct', pct + '%');
+
+                // ── Status badge ───────────────────────────────
+                const badge = document.getElementById('statusBadge');
+                if (badge) {
+                    const c = STATUS_COLORS[d.status] || '#adb5bd';
+                    badge.textContent = d.status.charAt(0).toUpperCase() + d.status.slice(1);
+                    badge.style.color = c;
+                    badge.style.borderColor = c + '66';
+                }
+
+                // ── Counts ─────────────────────────────────────
+                setEl('processedCount', fmt(d.processed_emails));
+                setEl('totalCount',     fmt(d.total_emails));
+
+                // ── Speed ──────────────────────────────────────
+                const speedWrap = document.getElementById('speedWrap');
+                if (speedWrap) {
+                    if (d.processing_speed > 0) {
+                        setEl('processingSpeed', fmt(d.processing_speed) + '/s');
+                        speedWrap.style.display = '';
+                    } else {
+                        speedWrap.style.display = 'none';
+                    }
+                }
+
+                // ── ETA ────────────────────────────────────────
+                const etaWrap = document.getElementById('etaWrap');
+                if (etaWrap) {
+                    if (d.eta_seconds > 0 && d.status === 'processing') {
+                        setEl('etaSeconds', fmtTime(d.eta_seconds));
+                        etaWrap.style.display = '';
+                    } else {
+                        etaWrap.style.display = 'none';
+                    }
+                }
+
+                // ── Continue or finish ─────────────────────────
+                if (d.status === 'pending' || d.status === 'processing') {
+                    setTimeout(poll, 2500);
+                } else {
+                    // Job finished — reload to show results table & download button
+                    setTimeout(() => location.reload(), 1500);
+                }
+            })
+            .catch(() => {
+                // Network error — retry slower
+                setTimeout(poll, 5000);
+            });
+    }
+
+    // Only start polling if job is active
+    if (INITIAL_STATUS === 'pending' || INITIAL_STATUS === 'processing') {
+        setTimeout(poll, 2500);
+    }
+})();
 </script>
-@endif
 @endpush
