@@ -109,6 +109,17 @@ class BulkController extends Controller
     {
         abort_unless($job->user_id === auth()->id(), 403);
 
+        // Fetch the 15 most-recently validated emails for the live results feed.
+        // Only query when there are results to avoid unnecessary DB hits.
+        $latestResults = [];
+        if ($job->processed_emails > 0) {
+            $latestResults = $job->results()
+                ->orderByDesc('id')
+                ->limit(15)
+                ->get(['email', 'status', 'score', 'is_disposable', 'smtp_valid', 'is_catch_all'])
+                ->toArray();
+        }
+
         return response()->json([
             'status'            => $job->status,
             'progress'          => $job->progress_percentage,
@@ -117,9 +128,11 @@ class BulkController extends Controller
             'valid_emails'      => $job->valid_emails,
             'invalid_emails'    => $job->invalid_emails,
             'risky_emails'      => $job->risky_emails,
+            'unknown_emails'    => $job->unknown_emails ?? 0,
             'processing_speed'  => $job->processing_speed,
             'eta_seconds'       => $job->estimated_seconds,
             'download_token'    => $job->download_token,
+            'latest_results'    => $latestResults,
         ]);
     }
 
